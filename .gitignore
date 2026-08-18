@@ -16,3 +16,8 @@ build/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Electron
+out/
+release/
+*.tsbuildinfo

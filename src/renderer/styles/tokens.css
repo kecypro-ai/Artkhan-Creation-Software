@@ -1,0 +1,25 @@
+:root {
+  --fond: #0f1012;
+  --panneau: #17181b;
+  --surface: #1f2024;
+  --surface-haute: #26272c;
+  --filet: rgba(255, 255, 255, 0.07);
+  --texte: #ececee;
+  --texte-secondaire: #9a9aa2;
+  --texte-tertiaire: #6b6b73;
+  --accent: #c8873f;
+  --accent-doux: rgba(200, 135, 63, 0.14);
+  --succes: #6fae7a;
+  --alerte: #d2724a;
+
+  --rayon-controle: 10px;
+  --rayon-carte: 14px;
+  --barre-titre: 44px;
+
+  --transition: 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --police: 'Inter', -apple-system, 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
+  --police-num: 'Inter', ui-monospace, 'Cascadia Mono', monospace;
+
+  color-scheme: dark;
+}

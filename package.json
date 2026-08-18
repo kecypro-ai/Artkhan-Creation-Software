@@ -1,0 +1,41 @@
+{
+  "name": "artkhan",
+  "version": "0.1.0",
+  "description": "Catalogue d'oeuvres pour artistes peintres",
+  "main": "./out/main/index.js",
+  "author": "Kecy Khan",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pack": "electron-vite build && electron-builder --dir",
+    "dist": "electron-vite build && electron-builder"
+  },
+  "dependencies": {
+    "sharp": "0.35.3",
+    "write-file-atomic": "8.0.0",
+    "yaml": "2.9.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.2.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@types/write-file-atomic": "4.0.3",
+    "@vitejs/plugin-react": "latest",
+    "electron": "43.4.0",
+    "electron-builder": "26.15.3",
+    "electron-vite": "5.0.0",
+    "lucide-react": "1.31.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "7.0.2",
+    "vite": "7.3.6",
+    "vitest": "4.1.10",
+    "zustand": "5.0.15"
+  }
+}
