@@ -2,6 +2,7 @@ import { mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { app } from 'electron'
 import writeFileAtomic from 'write-file-atomic'
+import { DOSSIER_CARNET } from '@shared/carnet'
 import type { Atelier, Preferences } from '@shared/types'
 import { PREFERENCES_DEFAUT } from '@shared/types'
 import { DOSSIER_INTERNE, DOSSIER_PHOTOS, DOSSIER_TABLEAUX, DOSSIER_VIGNETTES, FICHIER_ATELIER } from './chemins'
@@ -89,7 +90,8 @@ function normaliserAtelier(brut: unknown, nomDefaut: string): Atelier {
  * doit pas en renommer l'artiste.
  */
 export async function ouvrirAtelier(racine: string, nomPropose?: string): Promise<Atelier> {
-  for (const dossier of [DOSSIER_TABLEAUX, DOSSIER_PHOTOS, DOSSIER_INTERNE, DOSSIER_VIGNETTES]) {
+  const dossiers = [DOSSIER_TABLEAUX, DOSSIER_PHOTOS, DOSSIER_INTERNE, DOSSIER_VIGNETTES, ...Object.values(DOSSIER_CARNET)]
+  for (const dossier of dossiers) {
     await mkdir(join(racine, dossier), { recursive: true })
   }
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ImagePlus, Trash2, X } from 'lucide-react'
 import { urlMedia } from '@shared/medias'
+import { ChoixCarnet } from '../composants/ChoixCarnet'
 import type { BrouillonTableau, Certitude, Statut, Tableau } from '@shared/types'
 import { LIBELLE_CERTITUDE, LIBELLE_STATUT, STATUTS } from '@shared/types'
 import { versBrouillon, type Enregistrement } from '../etat/magasin'
@@ -42,6 +43,8 @@ function libelleLieu(statut: Statut): string {
 interface Props {
   tableau: Tableau
   enregistrement: Enregistrement
+  acheteurs: string[]
+  depots: string[]
   onRetour: () => void
   onEnregistrer: (ref: string, brouillon: BrouillonTableau) => void
   onSupprimer: (ref: string) => void
@@ -52,6 +55,8 @@ interface Props {
 export function VueFiche({
   tableau,
   enregistrement,
+  acheteurs,
+  depots,
   onRetour,
   onEnregistrer,
   onSupprimer,
@@ -240,14 +245,24 @@ export function VueFiche({
             </div>
           </div>
 
-          <label className="champ">
+          <div className="champ">
             <span className="champ__libelle">{libelleLieu(brouillon.statut)}</span>
-            <input
-              value={brouillon.lieu}
-              onChange={(e) => modifier({ lieu: e.target.value })}
-              placeholder="Facultatif"
-            />
-          </label>
+            {brouillon.statut === 'depot' ? (
+              <ChoixCarnet
+                type="depots"
+                valeur={brouillon.lieu}
+                noms={depots}
+                placeholder="Galerie, salon, prêt…"
+                onChange={(lieu) => modifier({ lieu })}
+              />
+            ) : (
+              <input
+                value={brouillon.lieu}
+                onChange={(e) => modifier({ lieu: e.target.value })}
+                placeholder="Facultatif"
+              />
+            )}
+          </div>
 
           {/*
             Le volet vente n'apparaît qu'au statut « Vendu ». Un formulaire qui
@@ -279,14 +294,16 @@ export function VueFiche({
                 </label>
               </div>
 
-              <label className="champ">
+              <div className="champ">
                 <span className="champ__libelle">Acheteur</span>
-                <input
-                  value={brouillon.acheteur}
-                  onChange={(e) => modifier({ acheteur: e.target.value })}
+                <ChoixCarnet
+                  type="acheteurs"
+                  valeur={brouillon.acheteur}
+                  noms={acheteurs}
                   placeholder="Nom, galerie, collection"
+                  onChange={(acheteur) => modifier({ acheteur })}
                 />
-              </label>
+              </div>
 
               <div className="rangee">
                 <label className="champ">

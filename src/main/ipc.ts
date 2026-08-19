@@ -1,4 +1,6 @@
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import type { Fiche, TypeCarnet } from '@shared/carnet'
+import { nomRattache } from '@shared/carnet'
 import type { Atelier, BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau } from '@shared/types'
 import {
   ecrireAtelier,
@@ -17,6 +19,7 @@ import {
   supprimerTableau,
   trouverTableau
 } from './atelier/depot'
+import { assurerFiches, enregistrerFiche, listerFiches, supprimerFiche } from './atelier/carnet'
 import { importerPhotos, retirerPhoto } from './atelier/photos'
 import { appliquerZoom } from './zoom'
 import { diagnostiquerSharp } from './thumbs/diag'
@@ -46,7 +49,31 @@ async function charger(chemin: string, nomPropose?: string): Promise<EtatAtelier
   atelier = await ouvrirAtelier(chemin, nomPropose)
   racine = chemin
   await ecrireCheminAtelier(chemin)
+  await reconcilierCarnets(chemin)
   return etat()
+}
+
+/**
+ * Ouvre une fiche à tout nom cité par le catalogue mais absent du carnet.
+ *
+ * L'alimentation courante se fait à l'écriture d'une œuvre, ce qui ne couvre
+ * pas les tableaux déjà saisis avant l'arrivée des carnets, ni un dossier
+ * rempli à la main. Une passe à l'ouverture rattrape les deux, sans jamais
+ * toucher aux fiches existantes.
+ */
+async function reconcilierCarnets(chemin: string): Promise<void> {
+  try {
+    const { tableaux } = await listerTableaux(chemin)
+    for (const type of ['acheteurs', 'depots'] as const) {
+      await assurerFiches(
+        chemin,
+        type,
+        tableaux.map((t) => nomRattache(t, type))
+      )
+    }
+  } catch {
+    // Un carnet incomplet ne doit pas empêcher d'ouvrir l'atelier.
+  }
 }
 
 /** Demande un dossier et l'ouvre. Rend l'état inchangé si l'artiste annule. */
@@ -133,6 +160,18 @@ export function brancherIpc(): void {
   ipcMain.handle('atelier:ouvrir-dossier', async (): Promise<void> => {
     if (racine !== null) await shell.openPath(racine)
   })
+
+  ipcMain.handle('carnet:lister', (_e, type: unknown): Promise<Fiche[]> =>
+    listerFiches(exigerRacine(), type as TypeCarnet)
+  )
+
+  ipcMain.handle('carnet:enregistrer', (_e, type: unknown, fiche: unknown): Promise<Fiche> =>
+    enregistrerFiche(exigerRacine(), type as TypeCarnet, fiche as Fiche)
+  )
+
+  ipcMain.handle('carnet:supprimer', (_e, type: unknown, nom: unknown): Promise<void> =>
+    supprimerFiche(exigerRacine(), type as TypeCarnet, texte(nom))
+  )
 
   ipcMain.handle('tableaux:lister', (): Promise<Catalogue> => listerTableaux(exigerRacine()))
 

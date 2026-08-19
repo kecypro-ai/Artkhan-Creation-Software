@@ -1,3 +1,5 @@
+import type { Fiche, TypeCarnet } from './carnet'
+
 export type Statut = 'atelier' | 'depot' | 'vendu' | 'offert'
 
 export const STATUTS: readonly Statut[] = ['atelier', 'depot', 'vendu', 'offert']
@@ -186,6 +188,10 @@ export interface ApiAtelier {
   creerTableau: (brouillon: BrouillonTableau) => Promise<Tableau>
   enregistrerTableau: (ref: string, brouillon: BrouillonTableau) => Promise<Tableau>
   supprimerTableau: (ref: string) => Promise<void>
+
+  listerFiches: (type: TypeCarnet) => Promise<Fiche[]>
+  enregistrerFiche: (type: TypeCarnet, fiche: Fiche) => Promise<Fiche>
+  supprimerFiche: (type: TypeCarnet, nom: string) => Promise<void>
 
   importerPhotos: (ref: string) => Promise<Tableau>
   retirerPhoto: (ref: string, photo: string) => Promise<Tableau>

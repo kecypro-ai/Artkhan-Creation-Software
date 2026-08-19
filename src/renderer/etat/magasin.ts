@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { Fiche, TypeCarnet } from '@shared/carnet'
 import { filtrer, parStatut, trier } from '@shared/liste'
 import type { BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau } from '@shared/types'
 import { PREFERENCES_DEFAUT } from '@shared/types'
@@ -36,6 +37,10 @@ const CATALOGUE_VIDE: Catalogue = {
 
 export type Enregistrement = 'repos' | 'en-cours' | 'enregistre'
 
+export type Rubrique = 'tableaux' | 'acheteurs' | 'depots' | 'certificats' | 'series'
+
+const CARNETS_VIDES: Record<TypeCarnet, Fiche[]> = { acheteurs: [], depots: [] }
+
 interface Magasin {
   etat: EtatAtelier
   catalogue: Catalogue
@@ -45,6 +50,8 @@ interface Magasin {
   erreur: string | null
   enregistrement: Enregistrement
   preferences: Preferences
+  rubrique: Rubrique
+  fiches: Record<TypeCarnet, Fiche[]>
 
   demarrer: () => Promise<void>
   choisirAtelier: () => Promise<void>
@@ -61,6 +68,8 @@ interface Magasin {
   supprimer: (ref: string) => Promise<void>
   importerPhotos: (ref: string) => Promise<void>
   retirerPhoto: (ref: string, photo: string) => Promise<void>
+  allerA: (rubrique: Rubrique) => void
+  enregistrerFiche: (type: TypeCarnet, fiche: Fiche) => Promise<void>
   effacerErreur: () => void
 }
 
@@ -79,6 +88,8 @@ export const useMagasin = create<Magasin>((set, get) => ({
   erreur: null,
   enregistrement: 'repos',
   preferences: PREFERENCES_DEFAUT,
+  rubrique: 'tableaux',
+  fiches: CARNETS_VIDES,
 
   demarrer: async () => {
     try {
@@ -145,7 +156,25 @@ export const useMagasin = create<Magasin>((set, get) => ({
 
   rafraichir: async () => {
     try {
-      set({ catalogue: await window.atelier.listerTableaux() })
+      // Les carnets suivent le même cycle que le catalogue : une fiche naît
+      // d'une écriture d'œuvre, la recharger séparément les désynchroniserait.
+      const [catalogue, acheteurs, depots] = await Promise.all([
+        window.atelier.listerTableaux(),
+        window.atelier.listerFiches('acheteurs'),
+        window.atelier.listerFiches('depots')
+      ])
+      set({ catalogue, fiches: { acheteurs, depots } })
+    } catch (e) {
+      set({ erreur: message(e) })
+    }
+  },
+
+  allerA: (rubrique) => set({ rubrique, refOuverte: null }),
+
+  enregistrerFiche: async (type, fiche) => {
+    try {
+      await window.atelier.enregistrerFiche(type, fiche)
+      await get().rafraichir()
     } catch (e) {
       set({ erreur: message(e) })
     }

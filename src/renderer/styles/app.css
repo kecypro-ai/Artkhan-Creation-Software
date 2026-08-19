@@ -977,3 +977,128 @@
   font-variant-numeric: tabular-nums;
   color: var(--texte-secondaire);
 }
+
+/* Carnets ---------------------------------------------------------------- */
+
+.rubrique__titre {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.choix-carnet {
+  display: flex;
+  gap: 8px;
+}
+
+.choix-carnet input {
+  flex: 1;
+}
+
+.choix-carnet .icone {
+  flex: none;
+  height: auto;
+  align-self: stretch;
+}
+
+.fiche__corps--carnet {
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+}
+
+.oeuvres {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.oeuvres__entete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--filet);
+}
+
+.oeuvres__titre {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texte-secondaire);
+}
+
+.oeuvres__total {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--succes);
+  font-variant-numeric: tabular-nums;
+}
+
+.oeuvres__liste {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oeuvres__liste button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--rayon-controle);
+  text-align: left;
+}
+
+.oeuvres__liste button:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--filet);
+}
+
+.oeuvres__liste img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex: none;
+}
+
+.oeuvres__liste .lignes__vide {
+  flex: none;
+  width: 44px;
+  height: 44px;
+}
+
+.oeuvres__nom {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.oeuvres__meta {
+  font-size: 12.5px;
+  color: var(--texte-secondaire);
+  font-variant-numeric: tabular-nums;
+}
+
+.oeuvres__prix {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.oeuvres__date {
+  font-size: 12px;
+  color: var(--texte-tertiaire);
+}

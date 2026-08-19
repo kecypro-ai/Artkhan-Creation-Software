@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react'
-import { Check, FolderOpen, Image, LayoutGrid, Minus, Pencil, Plus, Repeat, ScrollText, Users } from 'lucide-react'
+import { Check, FolderOpen, Image, LayoutGrid, Minus, Pencil, Plus, Repeat, ScrollText, Store, Users } from 'lucide-react'
 import type { Anomalies, Atelier } from '@shared/types'
+import type { Rubrique } from '../etat/magasin'
 import { pourcentageZoom, ZOOM_MAX, ZOOM_MIN } from '@shared/types'
 
-const RUBRIQUES = [
+const RUBRIQUES: { cle: Rubrique; libelle: string; Icone: typeof LayoutGrid; prete: boolean }[] = [
   { cle: 'tableaux', libelle: 'Tableaux', Icone: LayoutGrid, prete: true },
-  { cle: 'acheteurs', libelle: 'Acheteurs', Icone: Users, prete: false },
+  { cle: 'acheteurs', libelle: 'Acheteurs', Icone: Users, prete: true },
+  { cle: 'depots', libelle: 'Dépôts', Icone: Store, prete: true },
   { cle: 'certificats', libelle: 'Certificats', Icone: ScrollText, prete: false },
   { cle: 'series', libelle: 'Séries', Icone: Image, prete: false }
-] as const
+]
 
 interface Props {
   atelier: Atelier | null
   total: number
   anomalies: Anomalies
+  rubrique: Rubrique
   zoom: number
+  onRubrique: (rubrique: Rubrique) => void
   onOuvrirDossier: () => void
   onChangerAtelier: () => void
   onRenommer: (nom: string, prefixe: string) => void
@@ -25,7 +29,9 @@ export function BarreLaterale({
   atelier,
   total,
   anomalies,
+  rubrique,
   zoom,
+  onRubrique,
   onOuvrirDossier,
   onChangerAtelier,
   onRenommer,
@@ -114,8 +120,9 @@ export function BarreLaterale({
           <button
             key={cle}
             className="menu__item"
-            aria-current={prete}
+            aria-current={rubrique === cle}
             disabled={!prete}
+            onClick={() => onRubrique(cle)}
             title={prete ? undefined : 'À venir'}
           >
             <Icone size={17} strokeWidth={1.75} aria-hidden />

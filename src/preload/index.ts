@@ -34,6 +34,10 @@ const api: ApiAtelier = {
   enregistrerTableau: (ref, brouillon) => ipcRenderer.invoke('tableaux:enregistrer', ref, brouillon),
   supprimerTableau: (ref) => ipcRenderer.invoke('tableaux:supprimer', ref),
 
+  listerFiches: (type) => ipcRenderer.invoke('carnet:lister', type),
+  enregistrerFiche: (type, fiche) => ipcRenderer.invoke('carnet:enregistrer', type, fiche),
+  supprimerFiche: (type, nom) => ipcRenderer.invoke('carnet:supprimer', type, nom),
+
   importerPhotos: (ref) => ipcRenderer.invoke('photos:importer', ref),
   retirerPhoto: (ref, photo) => ipcRenderer.invoke('photos:retirer', ref, photo),
   revelerTableau: (ref) => ipcRenderer.invoke('tableaux:reveler', ref)

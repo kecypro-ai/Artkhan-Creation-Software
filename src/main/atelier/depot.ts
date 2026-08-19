@@ -2,8 +2,10 @@ import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { shell } from 'electron'
 import writeFileAtomic from 'write-file-atomic'
+import { nomRattache } from '@shared/carnet'
 import { ecrireTableau, lireTableau, nomFichier } from '@shared/document'
 import type { Atelier, BrouillonTableau, Catalogue, Tableau } from '@shared/types'
+import { assurerFiches } from './carnet'
 import { DOSSIER_TABLEAUX, dansAtelier } from './chemins'
 import { ecrireAtelier } from './config'
 
@@ -101,6 +103,11 @@ async function poser(racine: string, tableau: Tableau, ancienFichier: string | n
       }
     }
   }
+
+  // Un nom saisi sur une œuvre ouvre sa fiche au carnet. C'est le seul point
+  // d'appel : toute écriture d'œuvre passe ici.
+  await assurerFiches(racine, 'acheteurs', [nomRattache(complet, 'acheteurs')])
+  await assurerFiches(racine, 'depots', [nomRattache(complet, 'depots')])
 
   return complet
 }
