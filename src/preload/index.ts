@@ -21,6 +21,7 @@ const api: ApiAtelier = {
   lirePreferences: () => ipcRenderer.invoke('preferences:lire'),
   ecrirePreferences: (preferences) => ipcRenderer.invoke('preferences:ecrire', preferences),
   reglerZoom: (niveau) => ipcRenderer.invoke('vue:zoom', niveau),
+  reglerTheme: (theme) => ipcRenderer.invoke('vue:theme', theme),
   surZoom: (rappel) => {
     // Le zoom peut changer au clavier, sans passer par la page : elle a besoin
     // d'être prévenue pour tenir son affichage à jour.

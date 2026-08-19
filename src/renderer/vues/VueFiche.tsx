@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ImagePlus, Trash2, X } from 'lucide-react'
+import { ArrowLeft, ImagePlus, List, Trash2, X } from 'lucide-react'
+import { DEVISES, devisesDisponibles, normaliserDevise } from '@shared/devises'
 import { urlMedia } from '@shared/medias'
+import { refComplete } from '@shared/reference'
 import { ChoixCarnet } from '../composants/ChoixCarnet'
 import type { BrouillonTableau, Certitude, Statut, Tableau } from '@shared/types'
 import { LIBELLE_CERTITUDE, LIBELLE_STATUT, STATUTS } from '@shared/types'
@@ -20,6 +22,7 @@ const TECHNIQUES = [
 const CERTITUDES: Certitude[] = ['certaine', 'approximative', 'inconnue']
 
 const DELAI_ENREGISTREMENT = 600
+const AUTRE_DEVISE = ' autre'
 
 function nombreOuNull(v: string): number | null {
   const nettoye = v.replace(',', '.').trim()
@@ -45,6 +48,9 @@ interface Props {
   enregistrement: Enregistrement
   acheteurs: string[]
   depots: string[]
+  series: string[]
+  /** Codes déjà employés dans l'atelier, proposés en plus de la liste. */
+  devisesEmployees: string[]
   onRetour: () => void
   onEnregistrer: (ref: string, brouillon: BrouillonTableau) => void
   onSupprimer: (ref: string) => void
@@ -57,6 +63,8 @@ export function VueFiche({
   enregistrement,
   acheteurs,
   depots,
+  series,
+  devisesEmployees,
   onRetour,
   onEnregistrer,
   onSupprimer,
@@ -66,6 +74,9 @@ export function VueFiche({
   const [brouillon, setBrouillon] = useState<BrouillonTableau>(() => versBrouillon(tableau))
   const [sale, setSale] = useState(false)
   const [apercu, setApercu] = useState(0)
+  const [devisePersonnalisee, setDevisePersonnalisee] = useState(
+    () => tableau.devise !== '' && !DEVISES.some((d) => d.code === tableau.devise)
+  )
   const refAffichee = useRef(tableau.ref)
 
   // Le catalogue se recharge après chaque enregistrement : ne réinitialiser la
@@ -122,7 +133,7 @@ export function VueFiche({
         <span className="fiche__etat" aria-live="polite">
           {sale || enregistrement === 'en-cours' ? 'Enregistrement…' : enregistrement === 'enregistre' ? 'Enregistré' : ''}
         </span>
-        <span className="fiche__ref">{tableau.ref}</span>
+        <span className="fiche__ref">{refComplete({ ref: tableau.ref, serie: brouillon.serie })}</span>
       </header>
 
       <div className="fiche__corps">
@@ -284,14 +295,48 @@ export function VueFiche({
                   />
                 </label>
 
-                <label className="champ">
+                <div className="champ">
                   <span className="champ__libelle">Devise</span>
-                  <input
-                    value={brouillon.devise}
-                    onChange={(e) => modifier({ devise: e.target.value.toUpperCase() })}
-                    placeholder="EUR"
-                  />
-                </label>
+                  {devisePersonnalisee ? (
+                    <div className="choix-carnet">
+                      <input
+                        value={brouillon.devise}
+                        onChange={(e) => modifier({ devise: normaliserDevise(e.target.value) })}
+                        placeholder="Code à trois lettres"
+                        maxLength={3}
+                        autoFocus
+                        spellCheck={false}
+                      />
+                      <button
+                        className="icone"
+                        onClick={() => setDevisePersonnalisee(false)}
+                        title="Choisir dans la liste"
+                        aria-label="Choisir dans la liste"
+                      >
+                        <List size={16} strokeWidth={1.75} aria-hidden />
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value={brouillon.devise || 'EUR'}
+                      onChange={(e) => {
+                        if (e.target.value === AUTRE_DEVISE) {
+                          modifier({ devise: '' })
+                          setDevisePersonnalisee(true)
+                        } else {
+                          modifier({ devise: e.target.value })
+                        }
+                      }}
+                    >
+                      {devisesDisponibles(devisesEmployees, brouillon.devise).map((d) => (
+                        <option key={d.code} value={d.code}>
+                          {d.code} — {d.libelle}
+                        </option>
+                      ))}
+                      <option value={AUTRE_DEVISE}>Ajouter une devise…</option>
+                    </select>
+                  )}
+                </div>
               </div>
 
               <div className="champ">
@@ -327,14 +372,19 @@ export function VueFiche({
             </section>
           )}
 
-          <label className="champ">
+          <div className="champ">
             <span className="champ__libelle">Série</span>
-            <input
-              value={brouillon.serie}
-              onChange={(e) => modifier({ serie: e.target.value })}
-              placeholder="Facultatif"
+            <ChoixCarnet
+              type="series"
+              valeur={brouillon.serie}
+              noms={series}
+              placeholder="Aucune"
+              onChange={(serie) => modifier({ serie })}
             />
-          </label>
+            {brouillon.serie.trim() !== '' && (
+              <span className="champ__aide">La référence devient {refComplete({ ref: tableau.ref, serie: brouillon.serie })}</span>
+            )}
+          </div>
 
           <label className="champ">
             <span className="champ__libelle">Notes</span>

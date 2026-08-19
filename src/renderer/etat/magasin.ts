@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Fiche, TypeCarnet } from '@shared/carnet'
 import { filtrer, parStatut, trier } from '@shared/liste'
-import type { BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau } from '@shared/types'
+import type { BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau, Theme } from '@shared/types'
 import { PREFERENCES_DEFAUT } from '@shared/types'
 
 export const BROUILLON_VIDE: BrouillonTableau = {
@@ -39,7 +39,7 @@ export type Enregistrement = 'repos' | 'en-cours' | 'enregistre'
 
 export type Rubrique = 'tableaux' | 'acheteurs' | 'depots' | 'certificats' | 'series'
 
-const CARNETS_VIDES: Record<TypeCarnet, Fiche[]> = { acheteurs: [], depots: [] }
+const CARNETS_VIDES: Record<TypeCarnet, Fiche[]> = { acheteurs: [], depots: [], series: [] }
 
 interface Magasin {
   etat: EtatAtelier
@@ -60,6 +60,7 @@ interface Magasin {
   majPreferences: (p: Partial<Preferences>) => void
   reglerZoom: (niveau: number) => void
   noterZoom: (niveau: number) => void
+  reglerTheme: (theme: Theme) => void
   rafraichir: () => Promise<void>
   setRecherche: (v: string) => void
   ouvrir: (ref: string | null) => void
@@ -146,6 +147,11 @@ export const useMagasin = create<Magasin>((set, get) => ({
 
   noterZoom: (zoom) => set({ preferences: { ...get().preferences, zoom } }),
 
+  reglerTheme: (theme) => {
+    set({ preferences: { ...get().preferences, theme } })
+    void window.atelier.reglerTheme(theme)
+  },
+
   // Écriture en arrière-plan : un choix d'affichage ne doit jamais faire
   // attendre l'artiste, et le perdre en cas d'échec est sans gravité.
   majPreferences: (partielles) => {
@@ -158,12 +164,13 @@ export const useMagasin = create<Magasin>((set, get) => ({
     try {
       // Les carnets suivent le même cycle que le catalogue : une fiche naît
       // d'une écriture d'œuvre, la recharger séparément les désynchroniserait.
-      const [catalogue, acheteurs, depots] = await Promise.all([
+      const [catalogue, acheteurs, depots, series] = await Promise.all([
         window.atelier.listerTableaux(),
         window.atelier.listerFiches('acheteurs'),
-        window.atelier.listerFiches('depots')
+        window.atelier.listerFiches('depots'),
+        window.atelier.listerFiches('series')
       ])
-      set({ catalogue, fiches: { acheteurs, depots } })
+      set({ catalogue, fiches: { acheteurs, depots, series } })
     } catch (e) {
       set({ erreur: message(e) })
     }

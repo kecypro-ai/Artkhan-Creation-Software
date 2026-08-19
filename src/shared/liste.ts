@@ -1,3 +1,4 @@
+import { refComplete } from './reference'
 import type { ColonneTri, FiltreStatut, PorteeRecherche, SensTri, Statut, Tableau } from './types'
 import { STATUTS } from './types'
 
@@ -59,7 +60,7 @@ function champs(t: Tableau, portee: PorteeRecherche): string {
       // des toiles et sur les certificats, donc le premier terme qu'on cherche.
       return [
         t.titre,
-        t.ref,
+        refComplete(t),
         t.technique,
         t.lieu,
         t.serie,

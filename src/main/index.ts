@@ -4,6 +4,7 @@ import { app, BrowserWindow, shell } from 'electron'
 import { brancherIpc, racineCourante, restaurerAtelier } from './ipc'
 import { brancherProtocoles, declarerProtocoles } from './protocole'
 import { diagnostiquerSharp } from './thumbs/diag'
+import { couleursBarre, fondFenetre, restaurerTheme, suivreTheme } from './theme'
 import { verifierAtelier } from './verification'
 import { brancherRaccourcisZoom, restaurerZoom } from './zoom'
 
@@ -21,9 +22,9 @@ function creerFenetre(): void {
     minWidth: 940,
     minHeight: 620,
     show: false,
-    backgroundColor: '#0F1012',
+    backgroundColor: fondFenetre(),
     titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#17181B', symbolColor: '#9A9AA2', height: 44 },
+    titleBarOverlay: couleursBarre(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -33,6 +34,7 @@ function creerFenetre(): void {
   })
 
   brancherRaccourcisZoom(win)
+  suivreTheme(win)
 
   win.webContents.once('did-finish-load', () => void restaurerZoom(win))
   win.once('ready-to-show', () => win.show())
@@ -87,6 +89,8 @@ if (cheminVerif !== undefined) {
   void app.whenReady().then(async () => {
     brancherProtocoles(racineCourante)
     brancherIpc()
+    // Avant la fenêtre : elle naît déjà aux bonnes couleurs, sans clignoter.
+    await restaurerTheme()
     await restaurerAtelier()
     creerFenetre()
 

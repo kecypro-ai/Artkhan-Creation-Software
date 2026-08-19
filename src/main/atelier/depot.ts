@@ -4,6 +4,7 @@ import { shell } from 'electron'
 import writeFileAtomic from 'write-file-atomic'
 import { nomRattache } from '@shared/carnet'
 import { ecrireTableau, lireTableau, nomFichier } from '@shared/document'
+import { composerRef, numeroDe, refComplete } from '@shared/reference'
 import type { Atelier, BrouillonTableau, Catalogue, Tableau } from '@shared/types'
 import { assurerFiches } from './carnet'
 import { DOSSIER_TABLEAUX, dansAtelier } from './chemins'
@@ -65,17 +66,21 @@ async function trouver(racine: string, ref: string): Promise<Tableau | null> {
  * partager une référence.
  */
 async function prochaineRef(racine: string, atelier: Atelier): Promise<{ ref: string; atelier: Atelier }> {
-  const prises = new Set((await listerTableaux(racine)).tableaux.map((t) => t.ref))
-  let numero = atelier.prochainNumero
-  let ref = ''
-  do {
-    ref = `${atelier.prefixeRef}-${String(numero).padStart(3, '0')}`
-    numero += 1
-  } while (prises.has(ref))
+  const { tableaux } = await listerTableaux(racine)
 
-  const suivant: Atelier = { ...atelier, prochainNumero: numero }
+  // On repart du plus grand numéro réellement utilisé, et non du seul compteur
+  // enregistré. Comparer les numéros plutôt que les textes est indispensable
+  // depuis l'élargissement à quatre chiffres : « CK-031 » et « CK-0031 » sont
+  // deux écritures du même numéro, et deux toiles ne peuvent pas le partager.
+  let numero = atelier.prochainNumero
+  for (const t of tableaux) {
+    const n = numeroDe(t.ref, atelier.prefixeRef)
+    if (n !== null && n >= numero) numero = n + 1
+  }
+
+  const suivant: Atelier = { ...atelier, prochainNumero: numero + 1 }
   await ecrireAtelier(racine, suivant)
-  return { ref, atelier: suivant }
+  return { ref: composerRef(atelier.prefixeRef, numero), atelier: suivant }
 }
 
 function composer(ref: string, brouillon: BrouillonTableau, cree: string): Tableau {
@@ -83,7 +88,7 @@ function composer(ref: string, brouillon: BrouillonTableau, cree: string): Table
 }
 
 async function poser(racine: string, tableau: Tableau, ancienFichier: string | null): Promise<Tableau> {
-  const relatif = `${DOSSIER_TABLEAUX}/${nomFichier(tableau.ref, tableau.titre)}`
+  const relatif = `${DOSSIER_TABLEAUX}/${nomFichier(refComplete(tableau), tableau.titre)}`
   const absolu = dansAtelier(racine, relatif)
   if (absolu === null) throw new Error(`Chemin refusé : ${relatif}`)
 
@@ -108,6 +113,7 @@ async function poser(racine: string, tableau: Tableau, ancienFichier: string | n
   // d'appel : toute écriture d'œuvre passe ici.
   await assurerFiches(racine, 'acheteurs', [nomRattache(complet, 'acheteurs')])
   await assurerFiches(racine, 'depots', [nomRattache(complet, 'depots')])
+  await assurerFiches(racine, 'series', [nomRattache(complet, 'series')])
 
   return complet
 }

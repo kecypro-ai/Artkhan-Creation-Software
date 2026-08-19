@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Check, FolderOpen, Image, LayoutGrid, Minus, Pencil, Plus, Repeat, ScrollText, Store, Users } from 'lucide-react'
-import type { Anomalies, Atelier } from '@shared/types'
+import type { Anomalies, Atelier, Theme } from '@shared/types'
 import type { Rubrique } from '../etat/magasin'
-import { pourcentageZoom, ZOOM_MAX, ZOOM_MIN } from '@shared/types'
+import { LIBELLE_THEME, pourcentageZoom, ZOOM_MAX, ZOOM_MIN } from '@shared/types'
 
 const RUBRIQUES: { cle: Rubrique; libelle: string; Icone: typeof LayoutGrid; prete: boolean }[] = [
   { cle: 'tableaux', libelle: 'Tableaux', Icone: LayoutGrid, prete: true },
   { cle: 'acheteurs', libelle: 'Acheteurs', Icone: Users, prete: true },
   { cle: 'depots', libelle: 'Dépôts', Icone: Store, prete: true },
   { cle: 'certificats', libelle: 'Certificats', Icone: ScrollText, prete: false },
-  { cle: 'series', libelle: 'Séries', Icone: Image, prete: false }
+  { cle: 'series', libelle: 'Séries', Icone: Image, prete: true }
 ]
+
+const THEMES: Theme[] = ['auto', 'clair', 'sombre']
 
 interface Props {
   atelier: Atelier | null
@@ -18,11 +20,13 @@ interface Props {
   anomalies: Anomalies
   rubrique: Rubrique
   zoom: number
+  theme: Theme
   onRubrique: (rubrique: Rubrique) => void
   onOuvrirDossier: () => void
   onChangerAtelier: () => void
   onRenommer: (nom: string, prefixe: string) => void
   onZoom: (niveau: number) => void
+  onTheme: (theme: Theme) => void
 }
 
 export function BarreLaterale({
@@ -31,11 +35,13 @@ export function BarreLaterale({
   anomalies,
   rubrique,
   zoom,
+  theme,
   onRubrique,
   onOuvrirDossier,
   onChangerAtelier,
   onRenommer,
-  onZoom
+  onZoom,
+  onTheme
 }: Props): React.JSX.Element {
   const [edition, setEdition] = useState(false)
   const [nom, setNom] = useState('')
@@ -137,6 +143,14 @@ export function BarreLaterale({
         </div>
         {anomalies.sansPhoto > 0 && <div>{anomalies.sansPhoto} sans photo</div>}
         {anomalies.sansAnnee > 0 && <div>{anomalies.sansAnnee} sans année</div>}
+
+        <div className="themes" role="group" aria-label="Apparence">
+          {THEMES.map((t) => (
+            <button key={t} aria-pressed={theme === t} onClick={() => onTheme(t)}>
+              {LIBELLE_THEME[t]}
+            </button>
+          ))}
+        </div>
 
         <div className="zoom" title="Ctrl + et Ctrl − font la même chose">
           <button onClick={() => onZoom(zoom - 1)} disabled={zoom <= ZOOM_MIN} aria-label="Réduire l’affichage">

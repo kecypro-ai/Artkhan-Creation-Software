@@ -37,6 +37,7 @@ export type ModeVue = 'lignes' | 'grille'
 export type ColonneTri = 'titre' | 'ref' | 'annee' | 'ajout' | 'dimensions' | 'prix'
 export type SensTri = 'asc' | 'desc'
 export type PorteeRecherche = 'partout' | 'titre' | 'acheteur' | 'notes'
+export type Theme = 'auto' | 'clair' | 'sombre'
 export type FiltreStatut = Statut | 'tous'
 
 export const LIBELLE_TRI: Record<ColonneTri, string> = {
@@ -66,6 +67,14 @@ export interface Preferences {
    * Zéro vaut 100 %. Voir ZOOM_MIN / ZOOM_MAX pour les bornes.
    */
   zoom: number
+  /** « auto » suit le réglage de l'ordinateur. */
+  theme: Theme
+}
+
+export const LIBELLE_THEME: Record<Theme, string> = {
+  auto: 'Système',
+  clair: 'Clair',
+  sombre: 'Sombre'
 }
 
 export const ZOOM_MIN = -4
@@ -82,7 +91,8 @@ export const PREFERENCES_DEFAUT: Preferences = {
   tri: 'ajout',
   sens: 'desc',
   portee: 'partout',
-  zoom: 0
+  zoom: 0,
+  theme: 'auto'
 }
 
 export interface Tableau {
@@ -181,6 +191,7 @@ export interface ApiAtelier {
   lirePreferences: () => Promise<Preferences>
   ecrirePreferences: (preferences: Preferences) => Promise<void>
   reglerZoom: (niveau: number) => Promise<number>
+  reglerTheme: (theme: Theme) => Promise<void>
   /** Le zoom change aussi au clavier ; rend de quoi se désabonner. */
   surZoom: (rappel: (niveau: number) => void) => () => void
 

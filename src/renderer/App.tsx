@@ -78,6 +78,8 @@ export function App(): React.JSX.Element {
           enregistrement={m.enregistrement}
           acheteurs={nomsCites(tableaux, 'acheteurs')}
           depots={nomsCites(tableaux, 'depots')}
+          series={nomsCites(tableaux, 'series')}
+          devisesEmployees={tableaux.map((t) => t.devise)}
           onRetour={() => m.ouvrir(null)}
           onEnregistrer={onEnregistrer}
           onSupprimer={(ref) => void m.supprimer(ref)}
@@ -87,7 +89,7 @@ export function App(): React.JSX.Element {
       )
     }
 
-    if (m.rubrique === 'acheteurs' || m.rubrique === 'depots') {
+    if (m.rubrique === 'acheteurs' || m.rubrique === 'depots' || m.rubrique === 'series') {
       return (
         <VueCarnet
           type={m.rubrique}
@@ -123,11 +125,13 @@ export function App(): React.JSX.Element {
           anomalies={m.catalogue.anomalies}
           rubrique={m.rubrique}
           zoom={m.preferences.zoom}
+          theme={m.preferences.theme}
           onRubrique={m.allerA}
           onOuvrirDossier={() => void window.atelier.atelierOuvrirDossier()}
           onChangerAtelier={() => void m.choisirAtelier()}
           onRenommer={(nom, prefixe) => void m.renommerAtelier(nom, prefixe)}
           onZoom={m.reglerZoom}
+          onTheme={m.reglerTheme}
         />
 
         <main className="principal">

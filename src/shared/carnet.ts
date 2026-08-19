@@ -11,16 +11,18 @@ import type { Tableau } from './types'
  * l'œuvre qui l'alimente. Écrire deux fois ce code, ce serait deux fois les
  * mêmes bogues.
  */
-export type TypeCarnet = 'acheteurs' | 'depots'
+export type TypeCarnet = 'acheteurs' | 'depots' | 'series'
 
 export const DOSSIER_CARNET: Record<TypeCarnet, string> = {
   acheteurs: 'Acheteurs',
-  depots: 'Depots'
+  depots: 'Depots',
+  series: 'Series'
 }
 
 export const LIBELLE_CARNET: Record<TypeCarnet, { pluriel: string; singulier: string; nouveau: string }> = {
   acheteurs: { pluriel: 'Acheteurs', singulier: 'Acheteur', nouveau: 'Nouvel acheteur…' },
-  depots: { pluriel: 'Dépôts', singulier: 'Lieu de dépôt', nouveau: 'Nouveau lieu…' }
+  depots: { pluriel: 'Dépôts', singulier: 'Lieu de dépôt', nouveau: 'Nouveau lieu…' },
+  series: { pluriel: 'Séries', singulier: 'Série', nouveau: 'Nouvelle série…' }
 }
 
 export interface Fiche {
@@ -89,6 +91,7 @@ export function memeNom(a: string, b: string): boolean {
 /** Nom porté par une œuvre pour ce carnet, ou chaîne vide si aucun. */
 export function nomRattache(t: Tableau, type: TypeCarnet): string {
   if (type === 'acheteurs') return t.acheteur.trim()
+  if (type === 'series') return t.serie.trim()
   // Un lieu ne compte comme dépôt que si l'œuvre y est effectivement déposée :
   // le même champ sert d'emplacement pour une œuvre vendue ou offerte.
   return t.statut === 'depot' ? t.lieu.trim() : ''

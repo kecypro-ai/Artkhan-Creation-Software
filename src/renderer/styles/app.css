@@ -151,7 +151,7 @@
 
 .recherche input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: var(--filet-fort);
   background: var(--surface-haute);
 }
 
@@ -160,8 +160,8 @@
   align-items: center;
   gap: 8px;
   padding: 11px 18px;
-  background: var(--texte);
-  color: #121216;
+  background: var(--primaire-fond);
+  color: var(--primaire-texte);
   border: none;
   border-radius: 12px;
   font-weight: 550;
@@ -169,7 +169,7 @@
 }
 
 .bouton-primaire:hover:not(:disabled) {
-  background: #fff;
+  background: var(--primaire-survol);
 }
 
 /* Carte ------------------------------------------------------------------ */
@@ -187,7 +187,7 @@
 
 .carte:hover:not(:disabled) {
   background: var(--surface-haute);
-  border-color: rgba(255, 255, 255, 0.13);
+  border-color: var(--filet-fort);
   transform: translateY(-1px);
 }
 
@@ -229,7 +229,7 @@
 }
 
 .etiquette--vendu {
-  background: rgba(111, 174, 122, 0.14);
+  background: var(--succes-doux);
   color: var(--succes);
 }
 
@@ -334,7 +334,7 @@
 
 .depot-photo:hover:not(:disabled) {
   background: var(--surface);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--filet-fort);
 }
 
 .depot-photo img {
@@ -388,7 +388,7 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(15, 16, 18, 0.82);
+  background: var(--voile);
   border: 1px solid var(--filet);
   opacity: 0;
   transition: opacity var(--transition);
@@ -439,7 +439,7 @@
 .champ select:focus,
 .champ textarea:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--filet-fort);
   background: var(--surface-haute);
 }
 
@@ -469,9 +469,9 @@
 }
 
 .segments button[aria-pressed='true'] {
-  background: var(--texte);
-  border-color: var(--texte);
-  color: #121216;
+  background: var(--primaire-fond);
+  border-color: var(--primaire-fond);
+  color: var(--primaire-texte);
   font-weight: 550;
 }
 
@@ -482,7 +482,7 @@
   padding: 18px;
   border: 1px solid var(--filet);
   border-radius: var(--rayon-carte);
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--creux);
 }
 
 .volet__titre {
@@ -500,7 +500,7 @@
 }
 
 .bouton-danger:hover:not(:disabled) {
-  border-color: rgba(210, 114, 74, 0.5);
+  border-color: var(--alerte-filet);
   color: var(--alerte);
 }
 
@@ -537,9 +537,9 @@
 .avis {
   margin: 0 24px 16px;
   padding: 12px 14px;
-  border: 1px solid rgba(210, 114, 74, 0.35);
+  border: 1px solid var(--alerte-filet);
   border-radius: var(--rayon-controle);
-  background: rgba(210, 114, 74, 0.08);
+  background: var(--alerte-doux);
   color: var(--alerte);
   font-size: 13px;
 }
@@ -805,13 +805,13 @@
 }
 
 .pastille--vendu {
-  background: rgba(111, 174, 122, 0.14);
+  background: var(--succes-doux);
   color: var(--succes);
 }
 
 .pastille--offert {
-  background: rgba(182, 168, 238, 0.15);
-  color: #b6a8ee;
+  background: var(--violet-doux);
+  color: var(--violet);
 }
 
 /* Accueil animé ---------------------------------------------------------- */
@@ -864,7 +864,7 @@
 
 .accueil__champ:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--filet-fort);
   background: var(--surface-haute);
 }
 
@@ -1101,4 +1101,43 @@
 .oeuvres__date {
   font-size: 12px;
   color: var(--texte-tertiaire);
+}
+
+/* Apparence -------------------------------------------------------------- */
+
+.themes {
+  display: flex;
+  gap: 2px;
+  margin-top: 12px;
+  padding: 2px;
+  background: var(--surface);
+  border: 1px solid var(--filet);
+  border-radius: var(--rayon-controle);
+}
+
+.themes button {
+  flex: 1;
+  padding: 5px 4px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--texte-tertiaire);
+  font-size: 11.5px;
+}
+
+.themes button:hover:not(:disabled) {
+  background: var(--surface-haute);
+  color: var(--texte);
+}
+
+.themes button[aria-pressed='true'] {
+  background: var(--surface-haute);
+  color: var(--texte);
+  font-weight: 550;
+}
+
+.champ__aide {
+  font-size: 11.5px;
+  color: var(--texte-tertiaire);
+  font-family: var(--police-num);
 }

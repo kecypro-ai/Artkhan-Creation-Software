@@ -1,5 +1,6 @@
 import { ImageOff } from 'lucide-react'
 import { urlVignette } from '@shared/medias'
+import { refComplete } from '@shared/reference'
 import type { ColonneTri, Preferences, Tableau } from '@shared/types'
 import { LIBELLE_STATUT } from '@shared/types'
 
@@ -80,7 +81,7 @@ export function TableauLignes({ tableaux, preferences, onTri, onOuvrir }: Props)
                   {sansTitre ? 'Sans titre' : t.titre}
                 </td>
 
-                <td className="ref">{t.ref}</td>
+                <td className="ref">{refComplete(t)}</td>
                 <td className="num">{annee(t)}</td>
                 <td className="num">{dimensions(t)}</td>
 

@@ -60,8 +60,10 @@ export function VueCarnet({ type, fiches, tableaux, onEnregistrer, onOuvrirTable
                   <tr>
                     <th>{libelle.singulier}</th>
                     <th className="num">Œuvres</th>
-                    <th className="num">{type === 'acheteurs' ? 'Total' : 'Sur place'}</th>
-                    <th>Contact</th>
+                    {type !== 'series' && (
+                      <th className="num">{type === 'acheteurs' ? 'Total' : 'Sur place'}</th>
+                    )}
+                    {type !== 'series' && <th>Contact</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -72,14 +74,18 @@ export function VueCarnet({ type, fiches, tableaux, onEnregistrer, onOuvrirTable
                       <tr key={f.nom} onClick={() => setOuvert(f.nom)} tabIndex={0}>
                         <td className="lignes__titre">{f.nom}</td>
                         <td className="num">{oeuvres.length}</td>
-                        <td className="num">
-                          {type === 'depots'
-                            ? oeuvres.length
-                            : sommes.length === 0
-                              ? '—'
-                              : sommes.map((s) => formaterMontant(s.montant, s.devise)).join(' + ')}
-                        </td>
-                        <td className="lignes__lieu">{f.email || f.telephone || f.contact || '—'}</td>
+                        {type !== 'series' && (
+                          <td className="num">
+                            {type === 'depots'
+                              ? oeuvres.length
+                              : sommes.length === 0
+                                ? '—'
+                                : sommes.map((s) => formaterMontant(s.montant, s.devise)).join(' + ')}
+                          </td>
+                        )}
+                        {type !== 'series' && (
+                          <td className="lignes__lieu">{f.email || f.telephone || f.contact || '—'}</td>
+                        )}
                       </tr>
                     )
                   })}
@@ -164,6 +170,7 @@ function FicheCarnet({
 
       <div className="fiche__corps fiche__corps--carnet">
         <div className="formulaire">
+          {type !== 'series' && (
           <div className="rangee">
             <label className="champ">
               <span className="champ__libelle">Courriel</span>
@@ -178,6 +185,7 @@ function FicheCarnet({
               />
             </label>
           </div>
+          )}
 
           {type === 'depots' && (
             <label className="champ">
@@ -190,17 +198,23 @@ function FicheCarnet({
             </label>
           )}
 
-          <label className="champ">
-            <span className="champ__libelle">Adresse</span>
-            <input value={brouillon.adresse} onChange={(e) => modifier({ adresse: e.target.value })} placeholder="—" />
-          </label>
+          {type !== 'series' && (
+            <label className="champ">
+              <span className="champ__libelle">Adresse</span>
+              <input
+                value={brouillon.adresse}
+                onChange={(e) => modifier({ adresse: e.target.value })}
+                placeholder="—"
+              />
+            </label>
+          )}
 
           <label className="champ">
             <span className="champ__libelle">Notes</span>
             <textarea
               value={brouillon.notes}
               onChange={(e) => modifier({ notes: e.target.value })}
-              placeholder="Conditions, commission, souvenirs"
+              placeholder={type === 'series' ? 'Période, intention, contexte' : 'Conditions, commission, souvenirs'}
             />
           </label>
         </div>
@@ -208,7 +222,8 @@ function FicheCarnet({
         <section className="oeuvres">
           <header className="oeuvres__entete">
             <h2 className="oeuvres__titre">
-              {type === 'acheteurs' ? 'Œuvres achetées' : 'Œuvres déposées'} · {oeuvres.length}
+              {type === 'acheteurs' ? 'Œuvres achetées' : type === 'depots' ? 'Œuvres déposées' : 'Œuvres de la série'} ·{' '}
+            {oeuvres.length}
             </h2>
             {type === 'acheteurs' && sommes.length > 0 && (
               <div className="oeuvres__total">

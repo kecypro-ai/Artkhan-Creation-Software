@@ -1,17 +1,17 @@
-:root {
-  --fond: #0f1012;
-  --panneau: #17181b;
-  --surface: #1f2024;
-  --surface-haute: #26272c;
-  --filet: rgba(255, 255, 255, 0.07);
-  --texte: #ececee;
-  --texte-secondaire: #9a9aa2;
-  --texte-tertiaire: #6b6b73;
-  --accent: #c8873f;
-  --accent-doux: rgba(200, 135, 63, 0.14);
-  --succes: #6fae7a;
-  --alerte: #d2724a;
+/*
+ * Deux palettes, un seul jeu de noms.
+ *
+ * Aucune couleur ne s'écrit ailleurs que dans ce fichier : le reste de la
+ * feuille de style n'emploie que ces variables, et bascule donc d'un thème à
+ * l'autre sans être touché.
+ *
+ * Le choix du thème n'est pas fait ici. Le processus principal règle
+ * `nativeTheme.themeSource` — « système », « clair » ou « sombre » — et
+ * Chromium en déduit `prefers-color-scheme`. Une seule requête média suffit
+ * donc, et le mode automatique suit l'ordinateur sans code supplémentaire.
+ */
 
+:root {
   --rayon-controle: 10px;
   --rayon-carte: 14px;
   --barre-titre: 44px;
@@ -21,5 +21,67 @@
   --police: 'Inter', -apple-system, 'Segoe UI Variable Text', 'Segoe UI', sans-serif;
   --police-num: 'Inter', ui-monospace, 'Cascadia Mono', monospace;
 
+  /* Palette sombre, par défaut : un atelier se catalogue souvent le soir. */
+  --fond: #0f1012;
+  --panneau: #17181b;
+  --surface: #1f2024;
+  --surface-haute: #26272c;
+  --filet: rgba(255, 255, 255, 0.07);
+  --filet-fort: rgba(255, 255, 255, 0.16);
+  --texte: #ececee;
+  --texte-secondaire: #9a9aa2;
+  --texte-tertiaire: #6b6b73;
+  --primaire-fond: #ececee;
+  --primaire-survol: #ffffff;
+  --primaire-texte: #121216;
+  --accent: #c8873f;
+  --accent-doux: rgba(200, 135, 63, 0.14);
+  --succes: #6fae7a;
+  --succes-doux: rgba(111, 174, 122, 0.14);
+  --alerte: #d2724a;
+  --alerte-doux: rgba(210, 114, 74, 0.08);
+  --alerte-filet: rgba(210, 114, 74, 0.35);
+  --violet: #b6a8ee;
+  --violet-doux: rgba(182, 168, 238, 0.15);
+  --voile: rgba(15, 16, 18, 0.82);
+  --creux: rgba(255, 255, 255, 0.015);
+
   color-scheme: dark;
+}
+
+/*
+ * Palette claire. Un gris très pâle plutôt qu'un blanc pur : le blanc fatigue
+ * en pleine page et écrase les photos d'œuvres posées dessus.
+ *
+ * Les couleurs d'accent y sont assombries. Reprendre telles quelles celles du
+ * thème sombre donnerait un contraste insuffisant sur fond clair.
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --fond: #f6f6f4;
+    --panneau: #eeeeeb;
+    --surface: #ffffff;
+    --surface-haute: #f1f1ed;
+    --filet: rgba(0, 0, 0, 0.09);
+    --filet-fort: rgba(0, 0, 0, 0.2);
+    --texte: #1c1c1e;
+    --texte-secondaire: #5e5e66;
+    --texte-tertiaire: #8a8a92;
+    --primaire-fond: #1c1c1e;
+    --primaire-survol: #000000;
+    --primaire-texte: #ffffff;
+    --accent: #9a6118;
+    --accent-doux: rgba(154, 97, 24, 0.1);
+    --succes: #3f7d4c;
+    --succes-doux: rgba(63, 125, 76, 0.1);
+    --alerte: #b4451a;
+    --alerte-doux: rgba(180, 69, 26, 0.07);
+    --alerte-filet: rgba(180, 69, 26, 0.32);
+    --violet: #6b53c4;
+    --violet-doux: rgba(107, 83, 196, 0.11);
+    --voile: rgba(255, 255, 255, 0.86);
+    --creux: rgba(0, 0, 0, 0.015);
+
+    color-scheme: light;
+  }
 }
