@@ -1,11 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { DiagSharp } from '@shared/types'
+import type { ApiAtelier } from '@shared/types'
 
-const api = Object.freeze({
-  diagSharp: (chemin: string): Promise<DiagSharp> =>
-    ipcRenderer.invoke('diag:sharp', chemin)
+const api: ApiAtelier = Object.freeze({
+  diagSharp: (chemin: string) => ipcRenderer.invoke('diag:sharp', chemin)
 })
-
-export type ApiAtelier = typeof api
 
 contextBridge.exposeInMainWorld('atelier', api)

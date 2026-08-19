@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import type { ApiAtelier } from '../preload'
-import type { DiagSharp } from '@shared/types'
+import type { ApiAtelier, DiagSharp } from '@shared/types'
 
 declare global {
   interface Window {

@@ -11,3 +11,14 @@ export type DiagSharp =
       empaquete: boolean
     }
   | { ok: false; erreur: string; empaquete: boolean }
+
+/**
+ * Surface exposée au renderer par le preload.
+ *
+ * Déclarée ici, dans le domaine partagé, et non dérivée de l'objet du
+ * preload : le renderer ne doit jamais importer de code Node, et les deux
+ * projets TypeScript restent étanches.
+ */
+export interface ApiAtelier {
+  diagSharp: (chemin: string) => Promise<DiagSharp>
+}
