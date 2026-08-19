@@ -1,0 +1,68 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--police);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.barre-titre {
+  height: var(--barre-titre);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--panneau);
+  border-bottom: 1px solid var(--filet);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.barre-titre__nom {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texte-secondaire);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--filet);
+  border-radius: var(--rayon-controle);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  -webkit-app-region: no-drag;
+}
+
+button:hover:not(:disabled) {
+  background: var(--surface-haute);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+code,
+pre {
+  font-family: var(--police-num);
+  font-size: 12.5px;
+}
