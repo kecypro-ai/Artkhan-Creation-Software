@@ -1,11 +1,11 @@
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { BrowserWindow, shell } from 'electron'
 import writeFileAtomic from 'write-file-atomic'
 import { htmlCertificat } from '@shared/certificat'
 import { nomFichier } from '@shared/document'
 import { refComplete } from '@shared/reference'
-import type { Atelier, Tableau } from '@shared/types'
+import type { Atelier, CertificatEmis, Tableau } from '@shared/types'
 import { dansAtelier } from './atelier/chemins'
 
 export const DOSSIER_CERTIFICATS = 'Certificats'
@@ -74,7 +74,45 @@ export async function certificatImprimer(t: Tableau, atelier: Atelier): Promise<
   )
 }
 
-export async function certificatOuvrir(racine: string, t: Tableau): Promise<void> {
-  const absolu = dansAtelier(racine, cheminPdf(t))
+export async function certificatOuvrir(racine: string, fichier: string): Promise<void> {
+  const absolu = dansAtelier(racine, fichier)
   if (absolu !== null) await shell.openPath(absolu)
+}
+
+/**
+ * Les certificats réellement présents sur le disque, et non ceux qu'on croit
+ * avoir produits.
+ *
+ * Le dossier fait foi : un PDF supprimé disparaît de la liste, un PDF déposé
+ * à la main y entre. La référence est déduite du nom de fichier, seul lien
+ * entre le document et l'œuvre une fois le PDF sorti de l'application.
+ */
+export async function listerCertificats(racine: string): Promise<CertificatEmis[]> {
+  const dossier = join(racine, DOSSIER_CERTIFICATS)
+
+  let noms: string[]
+  try {
+    noms = (await readdir(dossier, { withFileTypes: true }))
+      .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.pdf'))
+      .map((e) => e.name)
+  } catch {
+    return []
+  }
+
+  const emis: CertificatEmis[] = []
+  for (const nom of noms) {
+    try {
+      const info = await stat(join(dossier, nom))
+      emis.push({
+        fichier: `${DOSSIER_CERTIFICATS}/${nom}`,
+        ref: (/^([A-Za-z0-9-]+?)(?:\s|\.pdf$)/.exec(nom)?.[1] ?? nom).replace(/\.pdf$/i, ''),
+        octets: info.size,
+        modifie: new Date(info.mtimeMs).toISOString().slice(0, 10)
+      })
+    } catch {
+      // Fichier disparu entre la liste et la lecture : on l'ignore.
+    }
+  }
+
+  return emis.sort((a, b) => b.modifie.localeCompare(a.modifie) || a.ref.localeCompare(b.ref, 'fr'))
 }

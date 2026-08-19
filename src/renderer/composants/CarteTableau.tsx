@@ -45,7 +45,7 @@ export function CarteTableau({ tableau, onOuvrir }: Props): React.JSX.Element {
               {tableau.lieu}
             </span>
           )}
-          {tableau.serie !== '' && <span className="etiquette">{tableau.serie}</span>}
+          {tableau.serie !== '' && <span className="etiquette etiquette--serie">{tableau.serie}</span>}
         </div>
       )}
     </button>

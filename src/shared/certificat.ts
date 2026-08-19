@@ -123,7 +123,9 @@ export function htmlCertificat(t: Tableau, atelier: Atelier, photoChoisie?: stri
     z-index: 0;
   }
   .contenu { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
-  h1 { margin: 6mm 0 12mm; text-align: center; font-size: 17pt; letter-spacing: 0.01em; }
+  h1 { margin: 6mm 0 2mm; text-align: center; font-size: 17pt; letter-spacing: 0.01em; }
+  .numero { text-align: center; font-size: 10pt; letter-spacing: 0.06em; }
+  .contenu > h1 + .preambule, .contenu > .numero + .preambule { margin-top: 10mm; }
   p { margin: 0 0 3.4mm; }
   .preambule { margin-bottom: 8mm; }
   .preambule em { font-style: italic; }
@@ -149,6 +151,11 @@ export function htmlCertificat(t: Tableau, atelier: Atelier, photoChoisie?: stri
 
       <div class="contenu">
         <h1>CERTIFICAT D’AUTHENTICITÉ</h1>
+        ${
+          t.certificat.trim() === ''
+            ? ''
+            : `<p class="numero">n° ${echapper(t.certificat.trim())}</p>`
+        }
 
         <div class="preambule">
           ${ligne('Je soussigné', atelier.artiste)}
@@ -168,7 +175,6 @@ export function htmlCertificat(t: Tableau, atelier: Atelier, photoChoisie?: stri
         ${ligne('Support', t.support)}
         ${ligne('Dimensions', dimensionsTexte(t))}
         ${ligne('Année et lieu de réalisation', lieuEtAnnee(t))}
-        ${ligne('Emplacement de la signature', t.emplacementSignature)}
         ${ligne('Référence', refComplete(t))}
 
         <p class="mention">${echapper(atelier.mentionLegale)}</p>

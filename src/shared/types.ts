@@ -123,7 +123,6 @@ export interface Tableau {
   /* Mentions du certificat d'authenticité. */
   support: string
   lieuRealisation: string
-  emplacementSignature: string
   edition: Edition
   editionNumero: string
   certificatDate: string
@@ -175,6 +174,15 @@ export interface Catalogue {
   anomalies: Anomalies
   /** Fichiers illisibles, signalés sans bloquer le reste du catalogue. */
   echecs: { fichier: string; erreur: string }[]
+}
+
+/** Un PDF réellement présent dans le dossier « Certificats ». */
+export interface CertificatEmis {
+  fichier: string
+  /** Référence complète déduite du nom de fichier. */
+  ref: string
+  octets: number
+  modifie: string
 }
 
 export type DiagSharp =
@@ -231,5 +239,6 @@ export interface ApiAtelier {
   /** Rend le chemin du PDF enregistré. */
   certificatPdf: (ref: string) => Promise<string>
   certificatImprimer: (ref: string) => Promise<void>
-  certificatOuvrir: (ref: string) => Promise<void>
+  certificatOuvrir: (fichier: string) => Promise<void>
+  listerCertificats: () => Promise<CertificatEmis[]>
 }

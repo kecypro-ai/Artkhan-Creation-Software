@@ -35,7 +35,6 @@ const CLES_CONNUES = new Set([
   'dateVente',
   'support',
   'lieuRealisation',
-  'emplacementSignature',
   'edition',
   'editionNumero',
   'certificatDate',
@@ -132,7 +131,6 @@ export function lireTableau(brut: string, fichier: string, refSecours: string): 
     dateVente: texte(entete['dateVente']),
     support: texte(entete['support']),
     lieuRealisation: texte(entete['lieuRealisation']),
-    emplacementSignature: texte(entete['emplacementSignature']),
     edition: edition(entete['edition']),
     editionNumero: texte(entete['editionNumero']),
     certificatDate: texte(entete['certificatDate']),
@@ -176,7 +174,6 @@ export function ecrireTableau(t: Tableau): string {
 
   poser('support', t.support)
   poser('lieuRealisation', t.lieuRealisation)
-  poser('emplacementSignature', t.emplacementSignature)
   // « original » va de soi : seule une édition limitée mérite d'être écrite.
   if (t.edition === 'limitee') {
     entete['edition'] = t.edition

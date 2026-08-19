@@ -1,7 +1,16 @@
 import { create } from 'zustand'
 import type { Fiche, TypeCarnet } from '@shared/carnet'
 import { filtrer, parStatut, trier } from '@shared/liste'
-import type { Atelier, BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau, Theme } from '@shared/types'
+import type {
+  Atelier,
+  BrouillonTableau,
+  Catalogue,
+  CertificatEmis,
+  EtatAtelier,
+  Preferences,
+  Tableau,
+  Theme
+} from '@shared/types'
 import { PREFERENCES_DEFAUT } from '@shared/types'
 
 export const BROUILLON_VIDE: BrouillonTableau = {
@@ -22,7 +31,6 @@ export const BROUILLON_VIDE: BrouillonTableau = {
   dateVente: '',
   support: '',
   lieuRealisation: '',
-  emplacementSignature: '',
   edition: 'original',
   editionNumero: '',
   certificatDate: '',
@@ -80,8 +88,10 @@ interface Magasin {
   reglagesAtelier: (reglages: Partial<Atelier>) => Promise<void>
   certificatPdf: (ref: string) => Promise<void>
   certificatImprimer: (ref: string) => Promise<void>
-  certificatOuvrir: (ref: string) => void
-  pdfsCrees: string[]
+  certificatOuvrir: (fichier: string) => void
+  /** Référence complète → chemin du PDF, pour le bouton « Ouvrir ». */
+  pdfsCrees: Record<string, string>
+  certificats: CertificatEmis[]
   occupeCertificat: boolean
   effacerErreur: () => void
 }
@@ -103,7 +113,8 @@ export const useMagasin = create<Magasin>((set, get) => ({
   preferences: PREFERENCES_DEFAUT,
   rubrique: 'tableaux',
   fiches: CARNETS_VIDES,
-  pdfsCrees: [],
+  pdfsCrees: {},
+  certificats: [],
   occupeCertificat: false,
 
   demarrer: async () => {
@@ -178,13 +189,14 @@ export const useMagasin = create<Magasin>((set, get) => ({
     try {
       // Les carnets suivent le même cycle que le catalogue : une fiche naît
       // d'une écriture d'œuvre, la recharger séparément les désynchroniserait.
-      const [catalogue, acheteurs, depots, series] = await Promise.all([
+      const [catalogue, acheteurs, depots, series, certificats] = await Promise.all([
         window.atelier.listerTableaux(),
         window.atelier.listerFiches('acheteurs'),
         window.atelier.listerFiches('depots'),
-        window.atelier.listerFiches('series')
+        window.atelier.listerFiches('series'),
+        window.atelier.listerCertificats()
       ])
-      set({ catalogue, fiches: { acheteurs, depots, series } })
+      set({ catalogue, fiches: { acheteurs, depots, series }, certificats })
     } catch (e) {
       set({ erreur: message(e) })
     }
@@ -268,8 +280,9 @@ export const useMagasin = create<Magasin>((set, get) => ({
   certificatPdf: async (ref) => {
     set({ occupeCertificat: true })
     try {
-      await window.atelier.certificatPdf(ref)
-      set({ pdfsCrees: [...new Set([...get().pdfsCrees, ref])] })
+      const fichier = await window.atelier.certificatPdf(ref)
+      set({ pdfsCrees: { ...get().pdfsCrees, [ref]: fichier } })
+      await get().rafraichir()
     } catch (e) {
       set({ erreur: message(e) })
     } finally {
@@ -288,7 +301,7 @@ export const useMagasin = create<Magasin>((set, get) => ({
     }
   },
 
-  certificatOuvrir: (ref) => void window.atelier.certificatOuvrir(ref),
+  certificatOuvrir: (fichier) => void window.atelier.certificatOuvrir(fichier),
 
   effacerErreur: () => set({ erreur: null })
 }))

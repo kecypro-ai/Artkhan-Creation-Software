@@ -8,7 +8,7 @@ const RUBRIQUES: { cle: Rubrique; libelle: string; Icone: typeof LayoutGrid; pre
   { cle: 'tableaux', libelle: 'Tableaux', Icone: LayoutGrid, prete: true },
   { cle: 'acheteurs', libelle: 'Acheteurs', Icone: Users, prete: true },
   { cle: 'depots', libelle: 'Dépôts', Icone: Store, prete: true },
-  { cle: 'certificats', libelle: 'Certificats', Icone: ScrollText, prete: false },
+  { cle: 'certificats', libelle: 'Certificats', Icone: ScrollText, prete: true },
   { cle: 'series', libelle: 'Séries', Icone: Image, prete: true }
 ]
 

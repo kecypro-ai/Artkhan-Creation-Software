@@ -1199,3 +1199,24 @@
   border: none;
   display: block;
 }
+
+/* Une série n'est pas un lieu : elle a sa propre couleur. */
+.etiquette--serie {
+  background: var(--violet-doux);
+  color: var(--violet);
+}
+
+.lien {
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.lien:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

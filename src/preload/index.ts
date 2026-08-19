@@ -46,7 +46,8 @@ const api: ApiAtelier = {
 
   certificatPdf: (ref) => ipcRenderer.invoke('certificat:pdf', ref),
   certificatImprimer: (ref) => ipcRenderer.invoke('certificat:imprimer', ref),
-  certificatOuvrir: (ref) => ipcRenderer.invoke('certificat:ouvrir', ref)
+  certificatOuvrir: (fichier) => ipcRenderer.invoke('certificat:ouvrir', fichier),
+  listerCertificats: () => ipcRenderer.invoke('certificats:lister')
 }
 
 contextBridge.exposeInMainWorld('atelier', Object.freeze(api))

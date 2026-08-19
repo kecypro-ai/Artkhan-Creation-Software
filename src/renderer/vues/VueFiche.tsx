@@ -51,7 +51,7 @@ interface Props {
   depots: string[]
   series: string[]
   atelier: Atelier | null
-  pdfCree: boolean
+  cheminPdf: string | null
   occupeCertificat: boolean
   /** Codes déjà employés dans l'atelier, proposés en plus de la liste. */
   devisesEmployees: string[]
@@ -62,7 +62,7 @@ interface Props {
   onRetirerPhoto: (ref: string, photo: string) => void
   onCertificatPdf: (ref: string) => void
   onCertificatImprimer: (ref: string) => void
-  onCertificatOuvrir: (ref: string) => void
+  onCertificatOuvrir: (fichier: string) => void
 }
 
 export function VueFiche({
@@ -72,7 +72,7 @@ export function VueFiche({
   depots,
   series,
   atelier,
-  pdfCree,
+  cheminPdf,
   occupeCertificat,
   devisesEmployees,
   onRetour,
@@ -167,8 +167,8 @@ export function VueFiche({
           onModifier={modifier}
           onPdf={() => onCertificatPdf(tableau.ref)}
           onImprimer={() => onCertificatImprimer(tableau.ref)}
-          onOuvrir={() => onCertificatOuvrir(tableau.ref)}
-          pdfCree={pdfCree}
+          onOuvrir={() => cheminPdf !== null && onCertificatOuvrir(cheminPdf)}
+          pdfCree={cheminPdf !== null}
           occupe={occupeCertificat}
         />
       ) : (

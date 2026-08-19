@@ -5,6 +5,7 @@ import { BarreLaterale } from './composants/BarreLaterale'
 import { useMagasin, visibles } from './etat/magasin'
 import { VueAccueil } from './vues/VueAccueil'
 import { VueCarnet } from './vues/VueCarnet'
+import { VueCertificats } from './vues/VueCertificats'
 import { VueFiche } from './vues/VueFiche'
 import { VueTableaux } from './vues/VueTableaux'
 
@@ -81,7 +82,7 @@ export function App(): React.JSX.Element {
           series={nomsCites(tableaux, 'series')}
           devisesEmployees={tableaux.map((t) => t.devise)}
           atelier={m.etat.atelier}
-          pdfCree={m.pdfsCrees.includes(ouverte.ref)}
+          cheminPdf={m.pdfsCrees[ouverte.ref] ?? null}
           occupeCertificat={m.occupeCertificat}
           onRetour={() => m.ouvrir(null)}
           onEnregistrer={onEnregistrer}
@@ -91,6 +92,17 @@ export function App(): React.JSX.Element {
           onCertificatPdf={(ref) => void m.certificatPdf(ref)}
           onCertificatImprimer={(ref) => void m.certificatImprimer(ref)}
           onCertificatOuvrir={m.certificatOuvrir}
+        />
+      )
+    }
+
+    if (m.rubrique === 'certificats') {
+      return (
+        <VueCertificats
+          certificats={m.certificats}
+          tableaux={tableaux}
+          onOuvrirPdf={m.certificatOuvrir}
+          onOuvrirTableau={(ref) => m.ouvrir(ref)}
         />
       )
     }

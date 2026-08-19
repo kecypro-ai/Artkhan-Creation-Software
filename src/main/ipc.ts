@@ -1,7 +1,16 @@
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import type { Fiche, TypeCarnet } from '@shared/carnet'
 import { nomRattache } from '@shared/carnet'
-import type { Atelier, BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau, Theme } from '@shared/types'
+import type {
+  Atelier,
+  BrouillonTableau,
+  Catalogue,
+  CertificatEmis,
+  EtatAtelier,
+  Preferences,
+  Tableau,
+  Theme
+} from '@shared/types'
 import {
   ecrireAtelier,
   ecrireCheminAtelier,
@@ -21,7 +30,7 @@ import {
 } from './atelier/depot'
 import { assurerFiches, enregistrerFiche, listerFiches, supprimerFiche } from './atelier/carnet'
 import { importerPhotos, retirerPhoto } from './atelier/photos'
-import { certificatImprimer, certificatOuvrir, certificatPdf } from './certificat'
+import { certificatImprimer, certificatOuvrir, certificatPdf, listerCertificats } from './certificat'
 import { appliquerTheme } from './theme'
 import { appliquerZoom } from './zoom'
 import { diagnostiquerSharp } from './thumbs/diag'
@@ -228,10 +237,11 @@ export function brancherIpc(): void {
     await certificatImprimer(t, a)
   })
 
-  ipcMain.handle('certificat:ouvrir', async (_e, ref: unknown): Promise<void> => {
-    const { base, t } = await pourCertificat(ref)
-    await certificatOuvrir(base, t)
-  })
+  ipcMain.handle('certificat:ouvrir', (_e, fichier: unknown): Promise<void> =>
+    certificatOuvrir(exigerRacine(), texte(fichier))
+  )
+
+  ipcMain.handle('certificats:lister', (): Promise<CertificatEmis[]> => listerCertificats(exigerRacine()))
 
   ipcMain.handle('photos:importer', async (_e, ref: unknown): Promise<Tableau> => {
     const base = exigerRacine()

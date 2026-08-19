@@ -4,7 +4,6 @@ import { htmlCertificat } from '@shared/certificat'
 import type { Atelier, BrouillonTableau, Edition, Tableau } from '@shared/types'
 
 const SUPPORTS = ['Toile', 'Papier', 'Panneau de bois', 'Carton entoilé', 'Cuivre', 'Mur']
-const EMPLACEMENTS = ['Recto', 'Verso', 'Dos du châssis', 'Angle inférieur droit', 'Angle inférieur gauche']
 
 /** Largeur d'une page A4 en pixels CSS à 96 ppp, unité de rendu du gabarit. */
 const A4_LARGEUR = 794
@@ -83,20 +82,6 @@ export function VoletCertificat({
             />
           </label>
 
-          <label className="champ">
-            <span className="champ__libelle">Signature située</span>
-            <input
-              value={brouillon.emplacementSignature}
-              onChange={(e) => onModifier({ emplacementSignature: e.target.value })}
-              list="emplacements"
-              placeholder="Recto"
-            />
-            <datalist id="emplacements">
-              {EMPLACEMENTS.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
-          </label>
         </div>
 
         <div className="champ">
