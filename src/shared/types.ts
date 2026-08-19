@@ -1,5 +1,92 @@
 export type Statut = 'atelier' | 'depot' | 'vendu' | 'offert'
 
+export const STATUTS: readonly Statut[] = ['atelier', 'depot', 'vendu', 'offert']
+
+export const LIBELLE_STATUT: Record<Statut, string> = {
+  atelier: 'À l’atelier',
+  depot: 'En dépôt',
+  vendu: 'Vendu',
+  offert: 'Offert'
+}
+
+/**
+ * Une année peut être sûre, approximative ou franchement inconnue.
+ *
+ * Un catalogue rétrospectif se construit de mémoire : imposer une date
+ * certaine obligerait à inventer. Mieux vaut enregistrer le doute que le
+ * dissimuler.
+ */
+export type Certitude = 'certaine' | 'approximative' | 'inconnue'
+
+export const LIBELLE_CERTITUDE: Record<Certitude, string> = {
+  certaine: 'Certaine',
+  approximative: 'Approximative',
+  inconnue: 'À vérifier'
+}
+
+export interface Tableau {
+  /** Identité stable de l'œuvre. Le nom de fichier, lui, peut changer. */
+  ref: string
+  /** Vide = « Sans titre ». Un tableau sans nom reste un tableau. */
+  titre: string
+  annee: number | null
+  certitude: Certitude
+  technique: string
+  hauteur: number | null
+  largeur: number | null
+  statut: Statut
+  /** Galerie, ville, collection — selon le statut. */
+  lieu: string
+  serie: string
+  /** Chemins relatifs à la racine du dossier d'atelier. */
+  photos: string[]
+  /** Volet vente : renseigné uniquement quand le statut le justifie. */
+  prix: number | null
+  devise: string
+  acheteur: string
+  certificat: string
+  dateVente: string
+  /** Corps du Markdown, libre. */
+  notes: string
+  cree: string
+  modifie: string
+  /**
+   * Champs d'en-tête que l'application ne connaît pas.
+   *
+   * Le dossier appartient à l'artiste : il peut ajouter ses propres clés,
+   * ou en garder d'une version future. On les relit et on les réécrit
+   * telles quelles plutôt que de les effacer silencieusement.
+   */
+  extra: Record<string, unknown>
+  /** Chemin relatif du .md. Déduit du disque, jamais écrit dans l'en-tête. */
+  fichier: string
+}
+
+export type BrouillonTableau = Omit<Tableau, 'ref' | 'fichier' | 'cree' | 'modifie'>
+
+export interface Atelier {
+  artiste: string
+  prefixeRef: string
+  prochainNumero: number
+}
+
+export interface EtatAtelier {
+  chemin: string | null
+  atelier: Atelier | null
+}
+
+export interface Anomalies {
+  sansPhoto: number
+  sansAnnee: number
+}
+
+export interface Catalogue {
+  tableaux: Tableau[]
+  anomalies: Anomalies
+  /** Fichiers illisibles, signalés sans bloquer le reste du catalogue. */
+  echecs: { fichier: string; erreur: string }[]
+}
+
 export type DiagSharp =
   | {
       ok: true
@@ -21,4 +108,17 @@ export type DiagSharp =
  */
 export interface ApiAtelier {
   diagSharp: (chemin: string) => Promise<DiagSharp>
+
+  atelierEtat: () => Promise<EtatAtelier>
+  atelierChoisir: () => Promise<EtatAtelier>
+  atelierOuvrirDossier: () => Promise<void>
+
+  listerTableaux: () => Promise<Catalogue>
+  creerTableau: (brouillon: BrouillonTableau) => Promise<Tableau>
+  enregistrerTableau: (ref: string, brouillon: BrouillonTableau) => Promise<Tableau>
+  supprimerTableau: (ref: string) => Promise<void>
+
+  importerPhotos: (ref: string) => Promise<Tableau>
+  retirerPhoto: (ref: string, photo: string) => Promise<Tableau>
+  revelerTableau: (ref: string) => Promise<void>
 }

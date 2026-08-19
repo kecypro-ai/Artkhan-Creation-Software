@@ -1,8 +1,9 @@
 import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, shell } from 'electron'
+import { brancherIpc, racineCourante, restaurerAtelier } from './ipc'
+import { brancherProtocoles, declarerProtocoles } from './protocole'
 import { diagnostiquerSharp } from './thumbs/diag'
-import type { DiagSharp } from '@shared/types'
 
 app.setPath('userData', join(app.getPath('appData'), '..', 'Local', 'Artkhan'))
 
@@ -66,18 +67,13 @@ if (cheminDiag !== undefined) {
 } else if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  void app.whenReady().then(() => {
-    ipcMain.handle('diag:sharp', (_e, chemin: unknown): Promise<DiagSharp> => {
-      if (typeof chemin !== 'string') {
-        return Promise.resolve({
-          ok: false,
-          erreur: 'Chemin invalide',
-          empaquete: app.isPackaged
-        })
-      }
-      return diagnostiquerSharp(chemin, app.isPackaged)
-    })
+  // Les schémas doivent être déclarés avant que l'application soit prête.
+  declarerProtocoles()
 
+  void app.whenReady().then(async () => {
+    brancherProtocoles(racineCourante)
+    brancherIpc()
+    await restaurerAtelier()
     creerFenetre()
 
     app.on('activate', () => {

@@ -1,5 +1,10 @@
-import { useState } from 'react'
-import type { ApiAtelier, DiagSharp } from '@shared/types'
+import { useCallback, useEffect } from 'react'
+import { FolderOpen } from 'lucide-react'
+import type { ApiAtelier } from '@shared/types'
+import { BarreLaterale } from './composants/BarreLaterale'
+import { filtrer, useMagasin } from './etat/magasin'
+import { VueFiche } from './vues/VueFiche'
+import { VueTableaux } from './vues/VueTableaux'
 
 declare global {
   interface Window {
@@ -7,76 +12,105 @@ declare global {
   }
 }
 
-/**
- * Écran de diagnostic de la phase 0.
- *
- * Son unique raison d'être est le critère de sortie : vérifier que sharp
- * charge et traite un JPEG 24 Mpx dans une application EMPAQUETÉE. Il sera
- * remplacé par la vue Tableaux dès que ce critère sera levé.
- */
 export function App(): React.JSX.Element {
-  const [chemin, setChemin] = useState('')
-  const [resultat, setResultat] = useState<DiagSharp | null>(null)
-  const [encours, setEncours] = useState(false)
+  const m = useMagasin()
+  const { demarrer, enregistrer } = m
 
-  async function lancer(): Promise<void> {
-    setEncours(true)
-    setResultat(null)
-    try {
-      setResultat(await window.atelier.diagSharp(chemin))
-    } finally {
-      setEncours(false)
-    }
+  useEffect(() => {
+    void demarrer()
+  }, [demarrer])
+
+  // Stabilisé : la fiche s'en sert dans son minuteur d'enregistrement.
+  const onEnregistrer = useCallback(
+    (ref: string, brouillon: Parameters<typeof enregistrer>[1]) => void enregistrer(ref, brouillon),
+    [enregistrer]
+  )
+
+  const barre = (
+    <header className="barre-titre">
+      <span className="barre-titre__nom">Atelier</span>
+    </header>
+  )
+
+  if (m.chargement) {
+    return (
+      <>
+        {barre}
+        <div className="vide-total">Ouverture de l’atelier…</div>
+      </>
+    )
   }
+
+  if (m.etat.chemin === null) {
+    return (
+      <>
+        {barre}
+        <main className="accueil">
+          <div className="accueil__carte">
+            <h1 className="accueil__titre">Choisissez le dossier de votre atelier</h1>
+            <p className="accueil__texte">
+              Chaque tableau y sera enregistré dans un fichier texte, ses photos rangées à côté. Vous pouvez le
+              sauvegarder, le déplacer ou l’ouvrir sans cette application : vos œuvres ne dépendent pas d’elle.
+            </p>
+            <button className="bouton-primaire" onClick={() => void m.choisirAtelier()}>
+              <FolderOpen size={17} strokeWidth={1.75} aria-hidden />
+              Choisir un dossier
+            </button>
+            {m.erreur !== null && <p className="avis">{m.erreur}</p>}
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  const ouverte = m.catalogue.tableaux.find((t) => t.ref === m.refOuverte) ?? null
 
   return (
     <>
-      <header className="barre-titre">
-        <span className="barre-titre__nom">Atelier — diagnostic</span>
-      </header>
+      {barre}
+      <div className="coque">
+        <BarreLaterale
+          atelier={m.etat.atelier}
+          total={m.catalogue.tableaux.length}
+          anomalies={m.catalogue.anomalies}
+          onOuvrirDossier={() => void window.atelier.atelierOuvrirDossier()}
+          onChangerAtelier={() => void m.choisirAtelier()}
+        />
 
-      <main style={{ padding: 24, display: 'grid', gap: 16, maxWidth: 720 }}>
-        <p style={{ color: 'var(--texte-secondaire)', margin: 0 }}>
-          Chemin d’un JPEG 24 Mpx à traiter par sharp :
-        </p>
+        <main className="principal">
+          {m.erreur !== null && (
+            <p className="avis" onClick={m.effacerErreur} role="alert">
+              {m.erreur}
+            </p>
+          )}
 
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            value={chemin}
-            onChange={(e) => setChemin(e.target.value)}
-            placeholder="C:\\...\\test-24mpx.jpg"
-            spellCheck={false}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              background: 'var(--surface)',
-              border: '1px solid var(--filet)',
-              borderRadius: 'var(--rayon-controle)',
-              color: 'var(--texte)',
-              font: 'inherit'
-            }}
-          />
-          <button onClick={() => void lancer()} disabled={!chemin || encours}>
-            {encours ? 'Traitement…' : 'Tester sharp'}
-          </button>
-        </div>
+          {m.catalogue.echecs.length > 0 && (
+            <p className="avis">
+              {m.catalogue.echecs.length} fichier(s) illisible(s) : {m.catalogue.echecs.map((e) => e.fichier).join(', ')}
+            </p>
+          )}
 
-        {resultat && (
-          <pre
-            style={{
-              background: 'var(--surface)',
-              border: `1px solid ${resultat.ok ? 'var(--filet)' : 'var(--alerte)'}`,
-              borderRadius: 'var(--rayon-carte)',
-              padding: 16,
-              margin: 0,
-              overflowX: 'auto',
-              color: resultat.ok ? 'var(--texte)' : 'var(--alerte)'
-            }}
-          >
-            {JSON.stringify(resultat, null, 2)}
-          </pre>
-        )}
-      </main>
+          {ouverte === null ? (
+            <VueTableaux
+              tableaux={filtrer(m.catalogue.tableaux, m.recherche)}
+              recherche={m.recherche}
+              onRecherche={m.setRecherche}
+              onAjouter={() => void m.ajouter()}
+              onOuvrir={(ref) => m.ouvrir(ref)}
+            />
+          ) : (
+            <VueFiche
+              tableau={ouverte}
+              enregistrement={m.enregistrement}
+              onRetour={() => m.ouvrir(null)}
+              onEnregistrer={onEnregistrer}
+              onSupprimer={(ref) => void m.supprimer(ref)}
+              onImporterPhotos={(ref) => void m.importerPhotos(ref)}
+              onRetirerPhoto={(ref, photo) => void m.retirerPhoto(ref, photo)}
+            />
+          )}
+        </main>
+      </div>
     </>
   )
 }
