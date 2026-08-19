@@ -11,8 +11,10 @@
   flex-direction: column;
   background: var(--panneau);
   border-right: 1px solid var(--filet);
-  padding: 20px 12px 16px;
-  overflow: hidden;
+  padding: 20px 12px 18px;
+  /* Une fenêtre courte ou un fort grossissement ne doivent pas rogner le
+     pied : il défile plutôt que de disparaître. */
+  overflow-y: auto;
 }
 
 .artiste {
@@ -67,16 +69,33 @@
 
 .pied {
   margin-top: auto;
-  padding: 16px 10px 0;
+  padding-top: 18px;
   border-top: 1px solid var(--filet);
-  font-size: 12.5px;
-  color: var(--texte-secondaire);
   display: grid;
-  gap: 3px;
+  gap: 18px;
+}
+
+.pied__compte {
+  display: grid;
+  gap: 1px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--texte-secondaire);
+}
+
+.pied__reglages {
+  display: grid;
+  gap: 8px;
+}
+
+.pied__liens {
+  display: grid;
+  gap: 10px;
+  padding: 0 10px;
 }
 
 .pied__lien {
-  margin-top: 10px;
   padding: 0;
   border: none;
   background: none;
@@ -948,7 +967,6 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-top: 12px;
   padding: 2px;
   background: var(--surface);
   border: 1px solid var(--filet);
@@ -1108,7 +1126,6 @@
 .themes {
   display: flex;
   gap: 2px;
-  margin-top: 12px;
   padding: 2px;
   background: var(--surface);
   border: 1px solid var(--filet);

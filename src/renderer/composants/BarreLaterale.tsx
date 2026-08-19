@@ -138,39 +138,45 @@ export function BarreLaterale({
       </nav>
 
       <div className="pied">
-        <div>
-          {total} tableau{total > 1 ? 'x' : ''}
+        <div className="pied__compte">
+          <div>
+            {total} tableau{total > 1 ? 'x' : ''}
+          </div>
+          {anomalies.sansPhoto > 0 && <div>{anomalies.sansPhoto} sans photo</div>}
+          {anomalies.sansAnnee > 0 && <div>{anomalies.sansAnnee} sans année</div>}
         </div>
-        {anomalies.sansPhoto > 0 && <div>{anomalies.sansPhoto} sans photo</div>}
-        {anomalies.sansAnnee > 0 && <div>{anomalies.sansAnnee} sans année</div>}
 
-        <div className="themes" role="group" aria-label="Apparence">
-          {THEMES.map((t) => (
-            <button key={t} aria-pressed={theme === t} onClick={() => onTheme(t)}>
-              {LIBELLE_THEME[t]}
+        <div className="pied__reglages">
+          <div className="themes" role="group" aria-label="Apparence">
+            {THEMES.map((t) => (
+              <button key={t} aria-pressed={theme === t} onClick={() => onTheme(t)}>
+                {LIBELLE_THEME[t]}
+              </button>
+            ))}
+          </div>
+
+          <div className="zoom" title="Ctrl + et Ctrl − font la même chose">
+            <button onClick={() => onZoom(zoom - 1)} disabled={zoom <= ZOOM_MIN} aria-label="Réduire l’affichage">
+              <Minus size={13} strokeWidth={2} aria-hidden />
             </button>
-          ))}
+            <button className="zoom__taux" onClick={() => onZoom(0)} aria-label="Revenir à 100 %">
+              {pourcentageZoom(zoom)} %
+            </button>
+            <button onClick={() => onZoom(zoom + 1)} disabled={zoom >= ZOOM_MAX} aria-label="Agrandir l’affichage">
+              <Plus size={13} strokeWidth={2} aria-hidden />
+            </button>
+          </div>
         </div>
 
-        <div className="zoom" title="Ctrl + et Ctrl − font la même chose">
-          <button onClick={() => onZoom(zoom - 1)} disabled={zoom <= ZOOM_MIN} aria-label="Réduire l’affichage">
-            <Minus size={13} strokeWidth={2} aria-hidden />
+        <div className="pied__liens">
+          <button className="pied__lien" onClick={onOuvrirDossier}>
+            <FolderOpen size={12} strokeWidth={1.75} aria-hidden /> Ouvrir le dossier
           </button>
-          <button className="zoom__taux" onClick={() => onZoom(0)} aria-label="Revenir à 100 %">
-            {pourcentageZoom(zoom)} %
-          </button>
-          <button onClick={() => onZoom(zoom + 1)} disabled={zoom >= ZOOM_MAX} aria-label="Agrandir l’affichage">
-            <Plus size={13} strokeWidth={2} aria-hidden />
+
+          <button className="pied__lien" onClick={onChangerAtelier}>
+            <Repeat size={12} strokeWidth={1.75} aria-hidden /> Changer d’atelier
           </button>
         </div>
-
-        <button className="pied__lien" onClick={onOuvrirDossier}>
-          <FolderOpen size={12} strokeWidth={1.75} aria-hidden /> Ouvrir le dossier
-        </button>
-
-        <button className="pied__lien" onClick={onChangerAtelier}>
-          <Repeat size={12} strokeWidth={1.75} aria-hidden /> Changer d’atelier
-        </button>
       </div>
     </aside>
   )
