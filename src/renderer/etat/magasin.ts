@@ -49,7 +49,10 @@ interface Magasin {
   demarrer: () => Promise<void>
   choisirAtelier: () => Promise<void>
   creerAtelier: (nom: string) => Promise<void>
+  renommerAtelier: (nom: string, prefixe: string) => Promise<void>
   majPreferences: (p: Partial<Preferences>) => void
+  reglerZoom: (niveau: number) => void
+  noterZoom: (niveau: number) => void
   rafraichir: () => Promise<void>
   setRecherche: (v: string) => void
   ouvrir: (ref: string | null) => void
@@ -117,6 +120,20 @@ export const useMagasin = create<Magasin>((set, get) => ({
       set({ chargement: false })
     }
   },
+
+  renommerAtelier: async (nom, prefixe) => {
+    try {
+      set({ etat: await window.atelier.atelierRenommer(nom, prefixe) })
+    } catch (e) {
+      set({ erreur: message(e) })
+    }
+  },
+
+  // Le processus principal applique et enregistre ; il renvoie le niveau
+  // retenu par le canal d'abonnement, ce qui couvre aussi le clavier.
+  reglerZoom: (niveau) => void window.atelier.reglerZoom(niveau),
+
+  noterZoom: (zoom) => set({ preferences: { ...get().preferences, zoom } }),
 
   // Écriture en arrière-plan : un choix d'affichage ne doit jamais faire
   // attendre l'artiste, et le perdre en cas d'échec est sans gravité.

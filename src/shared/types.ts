@@ -59,6 +59,19 @@ export interface Preferences {
   tri: ColonneTri
   sens: SensTri
   portee: PorteeRecherche
+  /**
+   * Niveau de zoom d'Electron, logarithmique : facteur = 1,2 ^ niveau.
+   * Zéro vaut 100 %. Voir ZOOM_MIN / ZOOM_MAX pour les bornes.
+   */
+  zoom: number
+}
+
+export const ZOOM_MIN = -4
+export const ZOOM_MAX = 4
+
+/** Pourcentage affiché à l'artiste, qui n'a pas à connaître les logarithmes. */
+export function pourcentageZoom(niveau: number): number {
+  return Math.round(1.2 ** niveau * 100)
 }
 
 export const PREFERENCES_DEFAUT: Preferences = {
@@ -66,7 +79,8 @@ export const PREFERENCES_DEFAUT: Preferences = {
   filtre: 'tous',
   tri: 'ajout',
   sens: 'desc',
-  portee: 'partout'
+  portee: 'partout',
+  zoom: 0
 }
 
 export interface Tableau {
@@ -159,9 +173,14 @@ export interface ApiAtelier {
   /** Premier lancement : le nom saisi devient celui de l'artiste. */
   atelierCreer: (nom: string) => Promise<EtatAtelier>
   atelierOuvrirDossier: () => Promise<void>
+  /** Le préfixe ne vaut que pour les références à venir ; l'ancien reste. */
+  atelierRenommer: (nom: string, prefixe: string) => Promise<EtatAtelier>
 
   lirePreferences: () => Promise<Preferences>
   ecrirePreferences: (preferences: Preferences) => Promise<void>
+  reglerZoom: (niveau: number) => Promise<number>
+  /** Le zoom change aussi au clavier ; rend de quoi se désabonner. */
+  surZoom: (rappel: (niveau: number) => void) => () => void
 
   listerTableaux: () => Promise<Catalogue>
   creerTableau: (brouillon: BrouillonTableau) => Promise<Tableau>

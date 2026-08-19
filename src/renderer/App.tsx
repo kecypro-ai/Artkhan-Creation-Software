@@ -14,11 +14,15 @@ declare global {
 
 export function App(): React.JSX.Element {
   const m = useMagasin()
-  const { demarrer, enregistrer } = m
+  const { demarrer, enregistrer, noterZoom } = m
 
   useEffect(() => {
     void demarrer()
   }, [demarrer])
+
+  // Ctrl + / Ctrl − passent par le processus principal : la page apprend le
+  // niveau retenu par ce canal plutôt qu'en le devinant.
+  useEffect(() => window.atelier.surZoom(noterZoom), [noterZoom])
 
   // Stabilisé : la fiche s'en sert dans son minuteur d'enregistrement.
   const onEnregistrer = useCallback(
@@ -66,6 +70,9 @@ export function App(): React.JSX.Element {
           anomalies={m.catalogue.anomalies}
           onOuvrirDossier={() => void window.atelier.atelierOuvrirDossier()}
           onChangerAtelier={() => void m.choisirAtelier()}
+          zoom={m.preferences.zoom}
+          onRenommer={(nom, prefixe) => void m.renommerAtelier(nom, prefixe)}
+          onZoom={m.reglerZoom}
         />
 
         <main className="principal">

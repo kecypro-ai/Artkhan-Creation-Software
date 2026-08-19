@@ -1,6 +1,7 @@
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import type { Atelier, BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau } from '@shared/types'
 import {
+  ecrireAtelier,
   ecrireCheminAtelier,
   ecrirePreferences,
   lireCheminAtelier,
@@ -17,6 +18,7 @@ import {
   trouverTableau
 } from './atelier/depot'
 import { importerPhotos, retirerPhoto } from './atelier/photos'
+import { appliquerZoom } from './zoom'
 import { diagnostiquerSharp } from './thumbs/diag'
 
 let racine: string | null = null
@@ -97,7 +99,32 @@ export function brancherIpc(): void {
     demanderDossier('Où ranger votre atelier ?', 'Créer ici', texte(nom))
   )
 
+  ipcMain.handle('atelier:renommer', async (_e, nom: unknown, prefixe: unknown): Promise<EtatAtelier> => {
+    const base = exigerRacine()
+    if (atelier === null) throw new Error('Aucun atelier ouvert')
+
+    const nouveauNom = texte(nom).trim()
+    const nouveauPrefixe = texte(prefixe).trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (nouveauNom === '') throw new Error('Le nom ne peut pas être vide')
+
+    // Le préfixe ne vaut que pour les références futures : renommer l'artiste
+    // ne doit pas invalider les références déjà peintes au dos des toiles.
+    atelier = {
+      ...atelier,
+      artiste: nouveauNom,
+      prefixeRef: nouveauPrefixe === '' ? atelier.prefixeRef : nouveauPrefixe
+    }
+    await ecrireAtelier(base, atelier)
+    return etat()
+  })
+
   ipcMain.handle('preferences:lire', (): Promise<Preferences> => lirePreferences())
+
+  ipcMain.handle('vue:zoom', async (_e, niveau: unknown): Promise<number> => {
+    const f = fenetre()
+    if (f === null) return 0
+    return appliquerZoom(f, typeof niveau === 'number' ? niveau : 0)
+  })
 
   ipcMain.handle('preferences:ecrire', (_e, p: unknown): Promise<void> =>
     ecrirePreferences(p as Preferences)

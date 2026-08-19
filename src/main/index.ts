@@ -5,6 +5,7 @@ import { brancherIpc, racineCourante, restaurerAtelier } from './ipc'
 import { brancherProtocoles, declarerProtocoles } from './protocole'
 import { diagnostiquerSharp } from './thumbs/diag'
 import { verifierAtelier } from './verification'
+import { brancherRaccourcisZoom, restaurerZoom } from './zoom'
 
 app.setPath('userData', join(app.getPath('appData'), '..', 'Local', 'Artkhan'))
 
@@ -31,6 +32,9 @@ function creerFenetre(): void {
     }
   })
 
+  brancherRaccourcisZoom(win)
+
+  win.webContents.once('did-finish-load', () => void restaurerZoom(win))
   win.once('ready-to-show', () => win.show())
 
   win.webContents.setWindowOpenHandler(({ url }) => {

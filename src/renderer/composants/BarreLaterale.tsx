@@ -1,5 +1,7 @@
-import { FolderOpen, Image, LayoutGrid, Repeat, ScrollText, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Check, FolderOpen, Image, LayoutGrid, Minus, Pencil, Plus, Repeat, ScrollText, Users } from 'lucide-react'
 import type { Anomalies, Atelier } from '@shared/types'
+import { pourcentageZoom, ZOOM_MAX, ZOOM_MIN } from '@shared/types'
 
 const RUBRIQUES = [
   { cle: 'tableaux', libelle: 'Tableaux', Icone: LayoutGrid, prete: true },
@@ -12,23 +14,100 @@ interface Props {
   atelier: Atelier | null
   total: number
   anomalies: Anomalies
+  zoom: number
   onOuvrirDossier: () => void
   onChangerAtelier: () => void
+  onRenommer: (nom: string, prefixe: string) => void
+  onZoom: (niveau: number) => void
 }
 
 export function BarreLaterale({
   atelier,
   total,
   anomalies,
+  zoom,
   onOuvrirDossier,
-  onChangerAtelier
+  onChangerAtelier,
+  onRenommer,
+  onZoom
 }: Props): React.JSX.Element {
+  const [edition, setEdition] = useState(false)
+  const [nom, setNom] = useState('')
+  const [prefixe, setPrefixe] = useState('')
+
+  // Rouvrir l'éditeur doit toujours partir des valeurs réellement enregistrées,
+  // pas d'une saisie abandonnée la fois précédente.
+  useEffect(() => {
+    if (!edition && atelier !== null) {
+      setNom(atelier.artiste)
+      setPrefixe(atelier.prefixeRef)
+    }
+  }, [edition, atelier])
+
+  function valider(): void {
+    if (nom.trim() === '') return
+    onRenommer(nom, prefixe)
+    setEdition(false)
+  }
+
   return (
     <aside className="colonne-gauche">
-      <div className="artiste">
-        <div className="artiste__nom">{atelier?.artiste ?? 'Atelier'}</div>
-        <div className="artiste__lieu">Atelier</div>
-      </div>
+      {edition ? (
+        <div className="artiste artiste--edition">
+          <label className="champ">
+            <span className="champ__libelle">Votre nom</span>
+            <input
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') valider()
+                if (e.key === 'Escape') setEdition(false)
+              }}
+              autoFocus
+              spellCheck={false}
+            />
+          </label>
+
+          <label className="champ">
+            <span className="champ__libelle">Préfixe des références</span>
+            <input
+              value={prefixe}
+              onChange={(e) => setPrefixe(e.target.value.toUpperCase())}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') valider()
+                if (e.key === 'Escape') setEdition(false)
+              }}
+              maxLength={4}
+              spellCheck={false}
+            />
+          </label>
+
+          <p className="artiste__note">Les références déjà attribuées ne changent pas.</p>
+
+          <div className="artiste__actions">
+            <button className="bouton-primaire" onClick={valider} disabled={nom.trim() === ''}>
+              <Check size={15} strokeWidth={2} aria-hidden />
+              Enregistrer
+            </button>
+            <button onClick={() => setEdition(false)}>Annuler</button>
+          </div>
+        </div>
+      ) : (
+        <div className="artiste">
+          <div className="artiste__ligne">
+            <span className="artiste__nom">{atelier?.artiste ?? 'Atelier'}</span>
+            <button
+              className="artiste__modifier"
+              onClick={() => setEdition(true)}
+              title="Modifier votre nom"
+              aria-label="Modifier votre nom"
+            >
+              <Pencil size={13} strokeWidth={1.75} aria-hidden />
+            </button>
+          </div>
+          <div className="artiste__lieu">Atelier · {atelier?.prefixeRef ?? '—'}</div>
+        </div>
+      )}
 
       <nav className="menu">
         {RUBRIQUES.map(({ cle, libelle, Icone, prete }) => (
@@ -51,6 +130,18 @@ export function BarreLaterale({
         </div>
         {anomalies.sansPhoto > 0 && <div>{anomalies.sansPhoto} sans photo</div>}
         {anomalies.sansAnnee > 0 && <div>{anomalies.sansAnnee} sans année</div>}
+
+        <div className="zoom" title="Ctrl + et Ctrl − font la même chose">
+          <button onClick={() => onZoom(zoom - 1)} disabled={zoom <= ZOOM_MIN} aria-label="Réduire l’affichage">
+            <Minus size={13} strokeWidth={2} aria-hidden />
+          </button>
+          <button className="zoom__taux" onClick={() => onZoom(0)} aria-label="Revenir à 100 %">
+            {pourcentageZoom(zoom)} %
+          </button>
+          <button onClick={() => onZoom(zoom + 1)} disabled={zoom >= ZOOM_MAX} aria-label="Agrandir l’affichage">
+            <Plus size={13} strokeWidth={2} aria-hidden />
+          </button>
+        </div>
 
         <button className="pied__lien" onClick={onOuvrirDossier}>
           <FolderOpen size={12} strokeWidth={1.75} aria-hidden /> Ouvrir le dossier

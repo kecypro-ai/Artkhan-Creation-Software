@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { IpcRendererEvent } from 'electron'
 import type { ApiAtelier } from '@shared/types'
 
 /**
@@ -15,9 +16,18 @@ const api: ApiAtelier = {
   atelierChoisir: () => ipcRenderer.invoke('atelier:choisir'),
   atelierCreer: (nom) => ipcRenderer.invoke('atelier:creer', nom),
   atelierOuvrirDossier: () => ipcRenderer.invoke('atelier:ouvrir-dossier'),
+  atelierRenommer: (nom, prefixe) => ipcRenderer.invoke('atelier:renommer', nom, prefixe),
 
   lirePreferences: () => ipcRenderer.invoke('preferences:lire'),
   ecrirePreferences: (preferences) => ipcRenderer.invoke('preferences:ecrire', preferences),
+  reglerZoom: (niveau) => ipcRenderer.invoke('vue:zoom', niveau),
+  surZoom: (rappel) => {
+    // Le zoom peut changer au clavier, sans passer par la page : elle a besoin
+    // d'être prévenue pour tenir son affichage à jour.
+    const ecouteur = (_e: IpcRendererEvent, niveau: number): void => rappel(niveau)
+    ipcRenderer.on('vue:zoom-change', ecouteur)
+    return () => ipcRenderer.removeListener('vue:zoom-change', ecouteur)
+  },
 
   listerTableaux: () => ipcRenderer.invoke('tableaux:lister'),
   creerTableau: (brouillon) => ipcRenderer.invoke('tableaux:creer', brouillon),
