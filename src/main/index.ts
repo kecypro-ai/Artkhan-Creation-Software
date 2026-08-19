@@ -4,6 +4,7 @@ import { app, BrowserWindow, shell } from 'electron'
 import { brancherIpc, racineCourante, restaurerAtelier } from './ipc'
 import { brancherProtocoles, declarerProtocoles } from './protocole'
 import { diagnostiquerSharp } from './thumbs/diag'
+import { verifierAtelier } from './verification'
 
 app.setPath('userData', join(app.getPath('appData'), '..', 'Local', 'Artkhan'))
 
@@ -44,26 +45,35 @@ function creerFenetre(): void {
   }
 }
 
-const cheminDiag = argument('--diag')
+/**
+ * Rend un compte rendu machine et s'arrête, sans jamais ouvrir de fenêtre.
+ *
+ * Le résultat passe par un fichier : sur Windows, une application empaquetée
+ * n'est pas rattachée à la console et son stdout n'arrive jamais au terminal
+ * appelant. Ces modes s'exécutent avant le verrou d'instance unique, pour
+ * qu'un contrôle ne soit pas avalé par une fenêtre déjà ouverte.
+ */
+async function rendreCompte(resultat: { ok: boolean }): Promise<void> {
+  const json = JSON.stringify(resultat, null, 2)
+  const sortie = argument('--out')
+  if (sortie !== undefined) await writeFile(sortie, json, 'utf8')
+  process.stdout.write(`${json}\n`)
+  app.exit(resultat.ok ? 0 : 1)
+}
 
-if (cheminDiag !== undefined) {
+const cheminDiag = argument('--diag')
+const cheminVerif = argument('--verifier')
+
+if (cheminVerif !== undefined) {
   /**
-   * Mode diagnostic non interactif : `Atelier.exe --diag <image> --out <json>`.
-   *
-   * Le critère de sortie de la phase 0 se vérifie sur une application
-   * EMPAQUETÉE, où sharp est le plus susceptible de casser. Sans ce mode, il
-   * faudrait cliquer dans l'interface à chaque build. Le résultat passe par un
-   * fichier : sur Windows, une application empaquetée n'est pas rattachée à la
-   * console et son stdout n'arrive jamais au terminal appelant.
+   * Contrôle de bout en bout sur un atelier réel, à lancer sur l'application
+   * empaquetée : lecture des fiches, résolution des chemins, et fabrication
+   * d'une vignette par sharp depuis l'archive asar.
    */
-  void app.whenReady().then(async () => {
-    const resultat = await diagnostiquerSharp(cheminDiag, app.isPackaged)
-    const json = JSON.stringify(resultat, null, 2)
-    const sortie = argument('--out')
-    if (sortie !== undefined) await writeFile(sortie, json, 'utf8')
-    process.stdout.write(`${json}\n`)
-    app.exit(resultat.ok ? 0 : 1)
-  })
+  void app.whenReady().then(async () => rendreCompte(await verifierAtelier(cheminVerif, app.isPackaged)))
+} else if (cheminDiag !== undefined) {
+  // Mesure brute de sharp sur une image donnée : `--diag <image>`.
+  void app.whenReady().then(async () => rendreCompte(await diagnostiquerSharp(cheminDiag, app.isPackaged)))
 } else if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
