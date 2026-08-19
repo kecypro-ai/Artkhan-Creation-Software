@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Fiche, TypeCarnet } from '@shared/carnet'
 import { filtrer, parStatut, trier } from '@shared/liste'
-import type { BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau, Theme } from '@shared/types'
+import type { Atelier, BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau, Theme } from '@shared/types'
 import { PREFERENCES_DEFAUT } from '@shared/types'
 
 export const BROUILLON_VIDE: BrouillonTableau = {
@@ -20,6 +20,12 @@ export const BROUILLON_VIDE: BrouillonTableau = {
   acheteur: '',
   certificat: '',
   dateVente: '',
+  support: '',
+  lieuRealisation: '',
+  emplacementSignature: '',
+  edition: 'original',
+  editionNumero: '',
+  certificatDate: '',
   notes: '',
   extra: {}
 }
@@ -71,6 +77,12 @@ interface Magasin {
   retirerPhoto: (ref: string, photo: string) => Promise<void>
   allerA: (rubrique: Rubrique) => void
   enregistrerFiche: (type: TypeCarnet, fiche: Fiche) => Promise<void>
+  reglagesAtelier: (reglages: Partial<Atelier>) => Promise<void>
+  certificatPdf: (ref: string) => Promise<void>
+  certificatImprimer: (ref: string) => Promise<void>
+  certificatOuvrir: (ref: string) => void
+  pdfsCrees: string[]
+  occupeCertificat: boolean
   effacerErreur: () => void
 }
 
@@ -91,6 +103,8 @@ export const useMagasin = create<Magasin>((set, get) => ({
   preferences: PREFERENCES_DEFAUT,
   rubrique: 'tableaux',
   fiches: CARNETS_VIDES,
+  pdfsCrees: [],
+  occupeCertificat: false,
 
   demarrer: async () => {
     try {
@@ -242,6 +256,39 @@ export const useMagasin = create<Magasin>((set, get) => ({
       set({ erreur: message(e) })
     }
   },
+
+  reglagesAtelier: async (reglages) => {
+    try {
+      set({ etat: await window.atelier.atelierReglages(reglages) })
+    } catch (e) {
+      set({ erreur: message(e) })
+    }
+  },
+
+  certificatPdf: async (ref) => {
+    set({ occupeCertificat: true })
+    try {
+      await window.atelier.certificatPdf(ref)
+      set({ pdfsCrees: [...new Set([...get().pdfsCrees, ref])] })
+    } catch (e) {
+      set({ erreur: message(e) })
+    } finally {
+      set({ occupeCertificat: false })
+    }
+  },
+
+  certificatImprimer: async (ref) => {
+    set({ occupeCertificat: true })
+    try {
+      await window.atelier.certificatImprimer(ref)
+    } catch (e) {
+      set({ erreur: message(e) })
+    } finally {
+      set({ occupeCertificat: false })
+    }
+  },
+
+  certificatOuvrir: (ref) => void window.atelier.certificatOuvrir(ref),
 
   effacerErreur: () => set({ erreur: null })
 }))

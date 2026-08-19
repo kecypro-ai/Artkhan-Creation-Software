@@ -8,12 +8,28 @@ import { couleursBarre, fondFenetre, restaurerTheme, suivreTheme } from './theme
 import { verifierAtelier } from './verification'
 import { brancherRaccourcisZoom, restaurerZoom } from './zoom'
 
-app.setPath('userData', join(app.getPath('appData'), '..', 'Local', 'Artkhan'))
-
 function argument(nom: string): string | undefined {
   const i = process.argv.indexOf(nom)
   return i === -1 ? undefined : process.argv[i + 1]
 }
+
+const cheminDiag = argument('--diag')
+const cheminVerif = argument('--verifier')
+
+/**
+ * Les contrôles sans fenêtre travaillent à part.
+ *
+ * Deux instances qui partagent le même dossier de données se disputent les
+ * caches de Chromium : le contrôle échouerait dès qu'une fenêtre est ouverte,
+ * et pourrait abîmer les préférences de la session en cours. Un contrôle doit
+ * pouvoir tourner pendant que l'artiste travaille.
+ */
+app.setPath(
+  'userData',
+  cheminDiag !== undefined || cheminVerif !== undefined
+    ? join(app.getPath('temp'), 'Artkhan-controle')
+    : join(app.getPath('appData'), '..', 'Local', 'Artkhan')
+)
 
 function creerFenetre(): void {
   const win = new BrowserWindow({
@@ -67,14 +83,21 @@ async function rendreCompte(resultat: { ok: boolean }): Promise<void> {
   app.exit(resultat.ok ? 0 : 1)
 }
 
-const cheminDiag = argument('--diag')
-const cheminVerif = argument('--verifier')
+if (cheminVerif !== undefined || cheminDiag !== undefined) {
+  /*
+   * Le contrôle fabrique un certificat, donc ouvre puis referme une fenêtre
+   * invisible. Sans ce gardien, Electron quitterait de lui-même en la voyant
+   * disparaître — avant que le compte rendu ne soit écrit, et en rendant 0
+   * comme si tout s'était bien passé.
+   */
+  app.on('window-all-closed', () => {})
+}
 
 if (cheminVerif !== undefined) {
   /**
    * Contrôle de bout en bout sur un atelier réel, à lancer sur l'application
-   * empaquetée : lecture des fiches, résolution des chemins, et fabrication
-   * d'une vignette par sharp depuis l'archive asar.
+   * empaquetée : lecture des fiches, résolution des chemins, fabrication d'une
+   * vignette par sharp et d'un certificat en PDF, le tout depuis l'archive.
    */
   void app.whenReady().then(async () => rendreCompte(await verifierAtelier(cheminVerif, app.isPackaged)))
 } else if (cheminDiag !== undefined) {

@@ -80,11 +80,17 @@ export function App(): React.JSX.Element {
           depots={nomsCites(tableaux, 'depots')}
           series={nomsCites(tableaux, 'series')}
           devisesEmployees={tableaux.map((t) => t.devise)}
+          atelier={m.etat.atelier}
+          pdfCree={m.pdfsCrees.includes(ouverte.ref)}
+          occupeCertificat={m.occupeCertificat}
           onRetour={() => m.ouvrir(null)}
           onEnregistrer={onEnregistrer}
           onSupprimer={(ref) => void m.supprimer(ref)}
           onImporterPhotos={(ref) => void m.importerPhotos(ref)}
           onRetirerPhoto={(ref, photo) => void m.retirerPhoto(ref, photo)}
+          onCertificatPdf={(ref) => void m.certificatPdf(ref)}
+          onCertificatImprimer={(ref) => void m.certificatImprimer(ref)}
+          onCertificatOuvrir={m.certificatOuvrir}
         />
       )
     }

@@ -20,6 +20,9 @@ export const LIBELLE_STATUT: Record<Statut, string> = {
  */
 export type Certitude = 'certaine' | 'approximative' | 'inconnue'
 
+/** Une œuvre est unique, ou tirée à plusieurs exemplaires numérotés. */
+export type Edition = 'original' | 'limitee'
+
 export const LIBELLE_CERTITUDE: Record<Certitude, string> = {
   certaine: 'Certaine',
   approximative: 'Approximative',
@@ -117,6 +120,13 @@ export interface Tableau {
   acheteur: string
   certificat: string
   dateVente: string
+  /* Mentions du certificat d'authenticité. */
+  support: string
+  lieuRealisation: string
+  emplacementSignature: string
+  edition: Edition
+  editionNumero: string
+  certificatDate: string
   /** Corps du Markdown, libre. */
   notes: string
   cree: string
@@ -139,7 +149,16 @@ export interface Atelier {
   artiste: string
   prefixeRef: string
   prochainNumero: number
+  /** Ville portée par défaut sur les certificats. */
+  ville: string
+  /** Texte en diagonale sur le certificat. */
+  filigrane: string
+  mentionLegale: string
 }
+
+export const MENTION_LEGALE_DEFAUT =
+  'Le présent certificat et les mentions qui y figurent constituent le droit de propriété de l’œuvre. ' +
+  'L’artiste conserve les droits d’auteur de l’œuvre.'
 
 export interface EtatAtelier {
   chemin: string | null
@@ -187,6 +206,7 @@ export interface ApiAtelier {
   atelierOuvrirDossier: () => Promise<void>
   /** Le préfixe ne vaut que pour les références à venir ; l'ancien reste. */
   atelierRenommer: (nom: string, prefixe: string) => Promise<EtatAtelier>
+  atelierReglages: (reglages: Partial<Atelier>) => Promise<EtatAtelier>
 
   lirePreferences: () => Promise<Preferences>
   ecrirePreferences: (preferences: Preferences) => Promise<void>
@@ -207,4 +227,9 @@ export interface ApiAtelier {
   importerPhotos: (ref: string) => Promise<Tableau>
   retirerPhoto: (ref: string, photo: string) => Promise<Tableau>
   revelerTableau: (ref: string) => Promise<void>
+
+  /** Rend le chemin du PDF enregistré. */
+  certificatPdf: (ref: string) => Promise<string>
+  certificatImprimer: (ref: string) => Promise<void>
+  certificatOuvrir: (ref: string) => Promise<void>
 }

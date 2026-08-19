@@ -21,6 +21,7 @@ import {
 } from './atelier/depot'
 import { assurerFiches, enregistrerFiche, listerFiches, supprimerFiche } from './atelier/carnet'
 import { importerPhotos, retirerPhoto } from './atelier/photos'
+import { certificatImprimer, certificatOuvrir, certificatPdf } from './certificat'
 import { appliquerTheme } from './theme'
 import { appliquerZoom } from './zoom'
 import { diagnostiquerSharp } from './thumbs/diag'
@@ -146,6 +147,14 @@ export function brancherIpc(): void {
     return etat()
   })
 
+  ipcMain.handle('atelier:reglages', async (_e, reglages: unknown): Promise<EtatAtelier> => {
+    const base = exigerRacine()
+    if (atelier === null) throw new Error('Aucun atelier ouvert')
+    atelier = { ...atelier, ...(reglages as Partial<Atelier>) }
+    await ecrireAtelier(base, atelier)
+    return etat()
+  })
+
   ipcMain.handle('preferences:lire', (): Promise<Preferences> => lirePreferences())
 
   ipcMain.handle('vue:theme', (_e, theme: unknown): Promise<void> => appliquerTheme(theme as Theme))
@@ -199,6 +208,30 @@ export function brancherIpc(): void {
   ipcMain.handle('tableaux:reveler', (_e, ref: unknown): Promise<void> =>
     revelerTableau(exigerRacine(), texte(ref))
   )
+
+  /** Le certificat exige l'œuvre et l'atelier : un seul point de récupération. */
+  const pourCertificat = async (ref: unknown): Promise<{ base: string; t: Tableau; a: Atelier }> => {
+    const base = exigerRacine()
+    if (atelier === null) throw new Error('Aucun atelier ouvert')
+    const t = await trouverTableau(base, texte(ref))
+    if (t === null) throw new Error(`Tableau introuvable : ${texte(ref)}`)
+    return { base, t, a: atelier }
+  }
+
+  ipcMain.handle('certificat:pdf', async (_e, ref: unknown): Promise<string> => {
+    const { base, t, a } = await pourCertificat(ref)
+    return certificatPdf(base, t, a)
+  })
+
+  ipcMain.handle('certificat:imprimer', async (_e, ref: unknown): Promise<void> => {
+    const { t, a } = await pourCertificat(ref)
+    await certificatImprimer(t, a)
+  })
+
+  ipcMain.handle('certificat:ouvrir', async (_e, ref: unknown): Promise<void> => {
+    const { base, t } = await pourCertificat(ref)
+    await certificatOuvrir(base, t)
+  })
 
   ipcMain.handle('photos:importer', async (_e, ref: unknown): Promise<Tableau> => {
     const base = exigerRacine()

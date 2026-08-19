@@ -1,5 +1,5 @@
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
-import type { Certitude, Statut, Tableau } from './types'
+import type { Certitude, Edition, Statut, Tableau } from './types'
 import { STATUTS } from './types'
 
 /**
@@ -33,6 +33,12 @@ const CLES_CONNUES = new Set([
   'acheteur',
   'certificat',
   'dateVente',
+  'support',
+  'lieuRealisation',
+  'emplacementSignature',
+  'edition',
+  'editionNumero',
+  'certificatDate',
   'cree',
   'modifie'
 ])
@@ -62,6 +68,10 @@ function certitude(v: unknown): Certitude {
   const c = texte(v).toLowerCase()
   if (c === 'certaine' || c === 'approximative' || c === 'inconnue') return c
   return 'certaine'
+}
+
+function edition(v: unknown): Edition {
+  return texte(v).toLowerCase() === 'limitee' ? 'limitee' : 'original'
 }
 
 function listeTexte(v: unknown): string[] {
@@ -120,6 +130,12 @@ export function lireTableau(brut: string, fichier: string, refSecours: string): 
     acheteur: texte(entete['acheteur']),
     certificat: texte(entete['certificat']),
     dateVente: texte(entete['dateVente']),
+    support: texte(entete['support']),
+    lieuRealisation: texte(entete['lieuRealisation']),
+    emplacementSignature: texte(entete['emplacementSignature']),
+    edition: edition(entete['edition']),
+    editionNumero: texte(entete['editionNumero']),
+    certificatDate: texte(entete['certificatDate']),
     notes: corps,
     cree: texte(entete['cree']),
     modifie: texte(entete['modifie']),
@@ -157,6 +173,16 @@ export function ecrireTableau(t: Tableau): string {
     poser('certificat', t.certificat)
     poser('dateVente', t.dateVente)
   }
+
+  poser('support', t.support)
+  poser('lieuRealisation', t.lieuRealisation)
+  poser('emplacementSignature', t.emplacementSignature)
+  // « original » va de soi : seule une édition limitée mérite d'être écrite.
+  if (t.edition === 'limitee') {
+    entete['edition'] = t.edition
+    poser('editionNumero', t.editionNumero)
+  }
+  poser('certificatDate', t.certificatDate)
 
   poser('cree', t.cree)
   poser('modifie', t.modifie)

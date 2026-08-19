@@ -3,8 +3,9 @@ import { join } from 'node:path'
 import { app } from 'electron'
 import writeFileAtomic from 'write-file-atomic'
 import { DOSSIER_CARNET } from '@shared/carnet'
+import { DOSSIER_CERTIFICATS } from '../certificat'
 import type { Atelier, Preferences } from '@shared/types'
-import { PREFERENCES_DEFAUT } from '@shared/types'
+import { MENTION_LEGALE_DEFAUT, PREFERENCES_DEFAUT } from '@shared/types'
 import { DOSSIER_INTERNE, DOSSIER_PHOTOS, DOSSIER_TABLEAUX, DOSSIER_VIGNETTES, FICHIER_ATELIER } from './chemins'
 
 /**
@@ -79,7 +80,17 @@ function normaliserAtelier(brut: unknown, nomDefaut: string): Atelier {
       ? o['prefixeRef'].trim().toUpperCase()
       : initiales(artiste)
   const numero = typeof o['prochainNumero'] === 'number' && o['prochainNumero'] > 0 ? Math.floor(o['prochainNumero']) : 1
-  return { artiste, prefixeRef: prefixe, prochainNumero: numero }
+  const chaine = (cle: string, defaut: string): string =>
+    typeof o[cle] === 'string' && o[cle].trim() !== '' ? (o[cle] as string).trim() : defaut
+
+  return {
+    artiste,
+    prefixeRef: prefixe,
+    prochainNumero: numero,
+    ville: chaine('ville', ''),
+    filigrane: chaine('filigrane', 'ArtKhan Creation'),
+    mentionLegale: chaine('mentionLegale', MENTION_LEGALE_DEFAUT)
+  }
 }
 
 /**
@@ -90,7 +101,7 @@ function normaliserAtelier(brut: unknown, nomDefaut: string): Atelier {
  * doit pas en renommer l'artiste.
  */
 export async function ouvrirAtelier(racine: string, nomPropose?: string): Promise<Atelier> {
-  const dossiers = [DOSSIER_TABLEAUX, DOSSIER_PHOTOS, DOSSIER_INTERNE, DOSSIER_VIGNETTES, ...Object.values(DOSSIER_CARNET)]
+  const dossiers = [DOSSIER_TABLEAUX, DOSSIER_PHOTOS, DOSSIER_INTERNE, DOSSIER_VIGNETTES, ...Object.values(DOSSIER_CARNET), DOSSIER_CERTIFICATS]
   for (const dossier of dossiers) {
     await mkdir(join(racine, dossier), { recursive: true })
   }

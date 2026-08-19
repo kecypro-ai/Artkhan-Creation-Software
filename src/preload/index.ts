@@ -17,6 +17,7 @@ const api: ApiAtelier = {
   atelierCreer: (nom) => ipcRenderer.invoke('atelier:creer', nom),
   atelierOuvrirDossier: () => ipcRenderer.invoke('atelier:ouvrir-dossier'),
   atelierRenommer: (nom, prefixe) => ipcRenderer.invoke('atelier:renommer', nom, prefixe),
+  atelierReglages: (reglages) => ipcRenderer.invoke('atelier:reglages', reglages),
 
   lirePreferences: () => ipcRenderer.invoke('preferences:lire'),
   ecrirePreferences: (preferences) => ipcRenderer.invoke('preferences:ecrire', preferences),
@@ -41,7 +42,11 @@ const api: ApiAtelier = {
 
   importerPhotos: (ref) => ipcRenderer.invoke('photos:importer', ref),
   retirerPhoto: (ref, photo) => ipcRenderer.invoke('photos:retirer', ref, photo),
-  revelerTableau: (ref) => ipcRenderer.invoke('tableaux:reveler', ref)
+  revelerTableau: (ref) => ipcRenderer.invoke('tableaux:reveler', ref),
+
+  certificatPdf: (ref) => ipcRenderer.invoke('certificat:pdf', ref),
+  certificatImprimer: (ref) => ipcRenderer.invoke('certificat:imprimer', ref),
+  certificatOuvrir: (ref) => ipcRenderer.invoke('certificat:ouvrir', ref)
 }
 
 contextBridge.exposeInMainWorld('atelier', Object.freeze(api))

@@ -1141,3 +1141,61 @@
   color: var(--texte-tertiaire);
   font-family: var(--police-num);
 }
+
+/* Certificat ------------------------------------------------------------- */
+
+.onglets--fiche {
+  padding: 14px 24px 0;
+  border-bottom: 1px solid var(--filet);
+  gap: 2px;
+}
+
+.onglets--fiche button {
+  padding: 9px 16px;
+  border-radius: 10px 10px 0 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.onglets--fiche button[aria-pressed='true'] {
+  background: transparent;
+  border-color: transparent;
+  border-bottom-color: var(--accent);
+  color: var(--texte);
+}
+
+.certificat {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  gap: 32px;
+  padding: 24px;
+  align-items: start;
+}
+
+.certificat__actions {
+  flex-wrap: wrap;
+}
+
+.certificat__note {
+  margin: 0;
+  font-family: var(--police);
+}
+
+.apercu {
+  position: sticky;
+  top: 24px;
+}
+
+.apercu__cadre {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--rayon-carte);
+  border: 1px solid var(--filet);
+  background: #fff;
+}
+
+.apercu iframe {
+  border: none;
+  display: block;
+}

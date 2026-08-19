@@ -4,7 +4,8 @@ import { DEVISES, devisesDisponibles, normaliserDevise } from '@shared/devises'
 import { urlMedia } from '@shared/medias'
 import { refComplete } from '@shared/reference'
 import { ChoixCarnet } from '../composants/ChoixCarnet'
-import type { BrouillonTableau, Certitude, Statut, Tableau } from '@shared/types'
+import { VoletCertificat } from '../composants/VoletCertificat'
+import type { Atelier, BrouillonTableau, Certitude, Statut, Tableau } from '@shared/types'
 import { LIBELLE_CERTITUDE, LIBELLE_STATUT, STATUTS } from '@shared/types'
 import { versBrouillon, type Enregistrement } from '../etat/magasin'
 
@@ -49,6 +50,9 @@ interface Props {
   acheteurs: string[]
   depots: string[]
   series: string[]
+  atelier: Atelier | null
+  pdfCree: boolean
+  occupeCertificat: boolean
   /** Codes déjà employés dans l'atelier, proposés en plus de la liste. */
   devisesEmployees: string[]
   onRetour: () => void
@@ -56,6 +60,9 @@ interface Props {
   onSupprimer: (ref: string) => void
   onImporterPhotos: (ref: string) => void
   onRetirerPhoto: (ref: string, photo: string) => void
+  onCertificatPdf: (ref: string) => void
+  onCertificatImprimer: (ref: string) => void
+  onCertificatOuvrir: (ref: string) => void
 }
 
 export function VueFiche({
@@ -64,16 +71,23 @@ export function VueFiche({
   acheteurs,
   depots,
   series,
+  atelier,
+  pdfCree,
+  occupeCertificat,
   devisesEmployees,
   onRetour,
   onEnregistrer,
   onSupprimer,
   onImporterPhotos,
-  onRetirerPhoto
+  onRetirerPhoto,
+  onCertificatPdf,
+  onCertificatImprimer,
+  onCertificatOuvrir
 }: Props): React.JSX.Element {
   const [brouillon, setBrouillon] = useState<BrouillonTableau>(() => versBrouillon(tableau))
   const [sale, setSale] = useState(false)
   const [apercu, setApercu] = useState(0)
+  const [onglet, setOnglet] = useState<'fiche' | 'certificat'>('fiche')
   const [devisePersonnalisee, setDevisePersonnalisee] = useState(
     () => tableau.devise !== '' && !DEVISES.some((d) => d.code === tableau.devise)
   )
@@ -136,6 +150,28 @@ export function VueFiche({
         <span className="fiche__ref">{refComplete({ ref: tableau.ref, serie: brouillon.serie })}</span>
       </header>
 
+      <nav className="onglets onglets--fiche">
+        <button aria-pressed={onglet === 'fiche'} onClick={() => setOnglet('fiche')}>
+          Fiche
+        </button>
+        <button aria-pressed={onglet === 'certificat'} onClick={() => setOnglet('certificat')}>
+          Certificat
+        </button>
+      </nav>
+
+      {onglet === 'certificat' ? (
+        <VoletCertificat
+          tableau={tableau}
+          brouillon={brouillon}
+          atelier={atelier}
+          onModifier={modifier}
+          onPdf={() => onCertificatPdf(tableau.ref)}
+          onImprimer={() => onCertificatImprimer(tableau.ref)}
+          onOuvrir={() => onCertificatOuvrir(tableau.ref)}
+          pdfCree={pdfCree}
+          occupe={occupeCertificat}
+        />
+      ) : (
       <div className="fiche__corps">
         <div className="photos">
           <button className="depot-photo" onClick={() => onImporterPhotos(tableau.ref)}>
@@ -402,6 +438,7 @@ export function VueFiche({
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 }
