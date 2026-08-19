@@ -24,6 +24,51 @@ export const LIBELLE_CERTITUDE: Record<Certitude, string> = {
   inconnue: 'À vérifier'
 }
 
+/**
+ * Réglages d'affichage du catalogue.
+ *
+ * Ils appartiennent à la machine, pas à l'atelier : deux ordinateurs peuvent
+ * regarder le même dossier avec des habitudes différentes, et ces choix ne
+ * décrivent pas les œuvres.
+ */
+export type ModeVue = 'lignes' | 'grille'
+export type ColonneTri = 'titre' | 'ref' | 'annee' | 'ajout' | 'dimensions' | 'prix'
+export type SensTri = 'asc' | 'desc'
+export type PorteeRecherche = 'partout' | 'titre' | 'acheteur' | 'notes'
+export type FiltreStatut = Statut | 'tous'
+
+export const LIBELLE_TRI: Record<ColonneTri, string> = {
+  titre: 'Titre',
+  ref: 'Référence',
+  annee: 'Année',
+  ajout: 'Date d’ajout',
+  dimensions: 'Dimensions',
+  prix: 'Prix'
+}
+
+export const LIBELLE_PORTEE: Record<PorteeRecherche, string> = {
+  partout: 'Partout',
+  titre: 'Titre',
+  acheteur: 'Acheteur',
+  notes: 'Notes'
+}
+
+export interface Preferences {
+  modeVue: ModeVue
+  filtre: FiltreStatut
+  tri: ColonneTri
+  sens: SensTri
+  portee: PorteeRecherche
+}
+
+export const PREFERENCES_DEFAUT: Preferences = {
+  modeVue: 'grille',
+  filtre: 'tous',
+  tri: 'ajout',
+  sens: 'desc',
+  portee: 'partout'
+}
+
 export interface Tableau {
   /** Identité stable de l'œuvre. Le nom de fichier, lui, peut changer. */
   ref: string
@@ -111,7 +156,12 @@ export interface ApiAtelier {
 
   atelierEtat: () => Promise<EtatAtelier>
   atelierChoisir: () => Promise<EtatAtelier>
+  /** Premier lancement : le nom saisi devient celui de l'artiste. */
+  atelierCreer: (nom: string) => Promise<EtatAtelier>
   atelierOuvrirDossier: () => Promise<void>
+
+  lirePreferences: () => Promise<Preferences>
+  ecrirePreferences: (preferences: Preferences) => Promise<void>
 
   listerTableaux: () => Promise<Catalogue>
   creerTableau: (brouillon: BrouillonTableau) => Promise<Tableau>

@@ -2,7 +2,8 @@ import { mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { app } from 'electron'
 import writeFileAtomic from 'write-file-atomic'
-import type { Atelier } from '@shared/types'
+import type { Atelier, Preferences } from '@shared/types'
+import { PREFERENCES_DEFAUT } from '@shared/types'
 import { DOSSIER_INTERNE, DOSSIER_PHOTOS, DOSSIER_TABLEAUX, DOSSIER_VIGNETTES, FICHIER_ATELIER } from './chemins'
 
 /**
@@ -15,30 +16,47 @@ import { DOSSIER_INTERNE, DOSSIER_PHOTOS, DOSSIER_TABLEAUX, DOSSIER_VIGNETTES, F
 
 interface ConfigMachine {
   chemin: string | null
+  preferences: Preferences
 }
 
 function fichierMachine(): string {
   return join(app.getPath('userData'), 'config.json')
 }
 
-export async function lireCheminAtelier(): Promise<string | null> {
+async function lireMachine(): Promise<ConfigMachine> {
   try {
-    const brut = await readFile(fichierMachine(), 'utf8')
-    const config: unknown = JSON.parse(brut)
-    if (config !== null && typeof config === 'object' && 'chemin' in config) {
-      const c = (config as ConfigMachine).chemin
-      return typeof c === 'string' && c !== '' ? c : null
-    }
+    const brut: unknown = JSON.parse(await readFile(fichierMachine(), 'utf8'))
+    const o = brut !== null && typeof brut === 'object' ? (brut as Record<string, unknown>) : {}
+    const chemin = typeof o['chemin'] === 'string' && o['chemin'] !== '' ? o['chemin'] : null
+    const p = o['preferences']
+    const preferences =
+      p !== null && typeof p === 'object' ? { ...PREFERENCES_DEFAUT, ...(p as Preferences) } : PREFERENCES_DEFAUT
+    return { chemin, preferences }
   } catch {
-    // Première ouverture, ou fichier abîmé : on repart d'un atelier non choisi.
+    // Première ouverture, ou fichier abîmé : on repart des valeurs par défaut.
+    return { chemin: null, preferences: PREFERENCES_DEFAUT }
   }
-  return null
+}
+
+async function ecrireMachine(config: ConfigMachine): Promise<void> {
+  await mkdir(app.getPath('userData'), { recursive: true })
+  await writeFileAtomic(fichierMachine(), `${JSON.stringify(config, null, 2)}\n`, 'utf8')
+}
+
+export async function lireCheminAtelier(): Promise<string | null> {
+  return (await lireMachine()).chemin
 }
 
 export async function ecrireCheminAtelier(chemin: string | null): Promise<void> {
-  await mkdir(app.getPath('userData'), { recursive: true })
-  const config: ConfigMachine = { chemin }
-  await writeFileAtomic(fichierMachine(), `${JSON.stringify(config, null, 2)}\n`, 'utf8')
+  await ecrireMachine({ ...(await lireMachine()), chemin })
+}
+
+export async function lirePreferences(): Promise<Preferences> {
+  return (await lireMachine()).preferences
+}
+
+export async function ecrirePreferences(preferences: Preferences): Promise<void> {
+  await ecrireMachine({ ...(await lireMachine()), preferences })
 }
 
 function initiales(nom: string): string {
@@ -63,8 +81,14 @@ function normaliserAtelier(brut: unknown, nomDefaut: string): Atelier {
   return { artiste, prefixeRef: prefixe, prochainNumero: numero }
 }
 
-/** Prépare l'arborescence si besoin et rend la configuration de l'atelier. */
-export async function ouvrirAtelier(racine: string): Promise<Atelier> {
+/**
+ * Prépare l'arborescence si besoin et rend la configuration de l'atelier.
+ *
+ * `nomPropose` vient de l'écran d'accueil du premier lancement. Il ne remplace
+ * un nom déjà enregistré que s'il est fourni : rouvrir un atelier existant ne
+ * doit pas en renommer l'artiste.
+ */
+export async function ouvrirAtelier(racine: string, nomPropose?: string): Promise<Atelier> {
   for (const dossier of [DOSSIER_TABLEAUX, DOSSIER_PHOTOS, DOSSIER_INTERNE, DOSSIER_VIGNETTES]) {
     await mkdir(join(racine, dossier), { recursive: true })
   }
@@ -76,9 +100,11 @@ export async function ouvrirAtelier(racine: string): Promise<Atelier> {
     // Dossier neuf, ou fichier illisible : les valeurs par défaut suffisent.
   }
 
-  const atelier = normaliserAtelier(brut, 'Atelier')
-  await ecrireAtelier(racine, atelier)
-  return atelier
+  const atelier = normaliserAtelier(brut, nomPropose ?? 'Atelier')
+  const nomme =
+    nomPropose !== undefined && nomPropose.trim() !== '' ? { ...atelier, artiste: nomPropose.trim() } : atelier
+  await ecrireAtelier(racine, nomme)
+  return nomme
 }
 
 export async function ecrireAtelier(racine: string, atelier: Atelier): Promise<void> {

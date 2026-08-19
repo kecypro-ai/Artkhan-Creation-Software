@@ -13,7 +13,11 @@ const api: ApiAtelier = {
 
   atelierEtat: () => ipcRenderer.invoke('atelier:etat'),
   atelierChoisir: () => ipcRenderer.invoke('atelier:choisir'),
+  atelierCreer: (nom) => ipcRenderer.invoke('atelier:creer', nom),
   atelierOuvrirDossier: () => ipcRenderer.invoke('atelier:ouvrir-dossier'),
+
+  lirePreferences: () => ipcRenderer.invoke('preferences:lire'),
+  ecrirePreferences: (preferences) => ipcRenderer.invoke('preferences:ecrire', preferences),
 
   listerTableaux: () => ipcRenderer.invoke('tableaux:lister'),
   creerTableau: (brouillon) => ipcRenderer.invoke('tableaux:creer', brouillon),

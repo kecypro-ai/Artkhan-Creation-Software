@@ -1,5 +1,7 @@
 import { create } from 'zustand'
-import type { BrouillonTableau, Catalogue, EtatAtelier, Tableau } from '@shared/types'
+import { filtrer, parStatut, trier } from '@shared/liste'
+import type { BrouillonTableau, Catalogue, EtatAtelier, Preferences, Tableau } from '@shared/types'
+import { PREFERENCES_DEFAUT } from '@shared/types'
 
 export const BROUILLON_VIDE: BrouillonTableau = {
   titre: '',
@@ -42,9 +44,12 @@ interface Magasin {
   refOuverte: string | null
   erreur: string | null
   enregistrement: Enregistrement
+  preferences: Preferences
 
   demarrer: () => Promise<void>
   choisirAtelier: () => Promise<void>
+  creerAtelier: (nom: string) => Promise<void>
+  majPreferences: (p: Partial<Preferences>) => void
   rafraichir: () => Promise<void>
   setRecherche: (v: string) => void
   ouvrir: (ref: string | null) => void
@@ -70,11 +75,15 @@ export const useMagasin = create<Magasin>((set, get) => ({
   refOuverte: null,
   erreur: null,
   enregistrement: 'repos',
+  preferences: PREFERENCES_DEFAUT,
 
   demarrer: async () => {
     try {
-      const etat = await window.atelier.atelierEtat()
-      set({ etat })
+      const [etat, preferences] = await Promise.all([
+        window.atelier.atelierEtat(),
+        window.atelier.lirePreferences()
+      ])
+      set({ etat, preferences })
       if (etat.chemin !== null) await get().rafraichir()
     } catch (e) {
       set({ erreur: message(e) })
@@ -94,6 +103,27 @@ export const useMagasin = create<Magasin>((set, get) => ({
     } finally {
       set({ chargement: false })
     }
+  },
+
+  creerAtelier: async (nom) => {
+    set({ chargement: true, erreur: null })
+    try {
+      const etat = await window.atelier.atelierCreer(nom)
+      set({ etat })
+      if (etat.chemin !== null) await get().rafraichir()
+    } catch (e) {
+      set({ erreur: message(e) })
+    } finally {
+      set({ chargement: false })
+    }
+  },
+
+  // Écriture en arrière-plan : un choix d'affichage ne doit jamais faire
+  // attendre l'artiste, et le perdre en cas d'échec est sans gravité.
+  majPreferences: (partielles) => {
+    const preferences = { ...get().preferences, ...partielles }
+    set({ preferences })
+    void window.atelier.ecrirePreferences(preferences)
   },
 
   rafraichir: async () => {
@@ -163,19 +193,15 @@ export const useMagasin = create<Magasin>((set, get) => ({
   effacerErreur: () => set({ erreur: null })
 }))
 
-/**
- * Filtre le catalogue sur la saisie de recherche.
- *
- * La référence est incluse volontairement : c'est elle qui figure au dos des
- * toiles et sur les certificats, donc le premier terme qu'on cherchera.
- */
-export function filtrer(tableaux: Tableau[], recherche: string): Tableau[] {
-  const q = recherche.trim().toLowerCase()
-  if (q === '') return tableaux
-  return tableaux.filter((t) =>
-    [t.titre, t.ref, t.technique, t.lieu, t.serie, t.acheteur, t.notes, t.annee === null ? '' : String(t.annee)]
-      .join(' ')
-      .toLowerCase()
-      .includes(q)
+/** Catalogue tel qu'il doit s'afficher : filtré par statut, cherché, puis trié. */
+export function visibles(
+  tableaux: Tableau[],
+  recherche: string,
+  preferences: Preferences
+): Tableau[] {
+  return trier(
+    filtrer(parStatut(tableaux, preferences.filtre), recherche, preferences.portee),
+    preferences.tri,
+    preferences.sens
   )
 }

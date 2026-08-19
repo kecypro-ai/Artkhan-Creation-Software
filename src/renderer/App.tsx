@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react'
-import { FolderOpen } from 'lucide-react'
 import type { ApiAtelier } from '@shared/types'
 import { BarreLaterale } from './composants/BarreLaterale'
-import { filtrer, useMagasin } from './etat/magasin'
+import { useMagasin, visibles } from './etat/magasin'
+import { VueAccueil } from './vues/VueAccueil'
 import { VueFiche } from './vues/VueFiche'
 import { VueTableaux } from './vues/VueTableaux'
 
@@ -45,20 +45,11 @@ export function App(): React.JSX.Element {
     return (
       <>
         {barre}
-        <main className="accueil">
-          <div className="accueil__carte">
-            <h1 className="accueil__titre">Choisissez le dossier de votre atelier</h1>
-            <p className="accueil__texte">
-              Chaque tableau y sera enregistré dans un fichier texte, ses photos rangées à côté. Vous pouvez le
-              sauvegarder, le déplacer ou l’ouvrir sans cette application : vos œuvres ne dépendent pas d’elle.
-            </p>
-            <button className="bouton-primaire" onClick={() => void m.choisirAtelier()}>
-              <FolderOpen size={17} strokeWidth={1.75} aria-hidden />
-              Choisir un dossier
-            </button>
-            {m.erreur !== null && <p className="avis">{m.erreur}</p>}
-          </div>
-        </main>
+        <VueAccueil
+          onCreer={(nom) => void m.creerAtelier(nom)}
+          onOuvrirExistant={() => void m.choisirAtelier()}
+          erreur={m.erreur}
+        />
       </>
     )
   }
@@ -92,9 +83,12 @@ export function App(): React.JSX.Element {
 
           {ouverte === null ? (
             <VueTableaux
-              tableaux={filtrer(m.catalogue.tableaux, m.recherche)}
+              tableaux={m.catalogue.tableaux}
+              visibles={visibles(m.catalogue.tableaux, m.recherche, m.preferences)}
               recherche={m.recherche}
+              preferences={m.preferences}
               onRecherche={m.setRecherche}
+              onPreferences={m.majPreferences}
               onAjouter={() => void m.ajouter()}
               onOuvrir={(ref) => m.ouvrir(ref)}
             />
