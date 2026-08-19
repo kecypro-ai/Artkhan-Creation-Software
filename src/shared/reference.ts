@@ -14,7 +14,7 @@ import type { Tableau } from './types'
  * changement d'avis.
  */
 
-export const LARGEUR_NUMERO = 4
+const LARGEUR_NUMERO = 4
 
 const ACCENTS = /[̀-ͯ]/g
 

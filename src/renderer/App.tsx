@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import { nomsCites } from '@shared/carnet'
+import { refComplete } from '@shared/reference'
 import type { ApiAtelier } from '@shared/types'
 import { BarreLaterale } from './composants/BarreLaterale'
 import { useMagasin, visibles } from './etat/magasin'
@@ -82,7 +83,7 @@ export function App(): React.JSX.Element {
           series={nomsCites(tableaux, 'series')}
           devisesEmployees={tableaux.map((t) => t.devise)}
           atelier={m.etat.atelier}
-          cheminPdf={m.pdfsCrees[ouverte.ref] ?? null}
+          cheminPdf={m.certificats.find((c) => c.ref === refComplete(ouverte))?.fichier ?? null}
           occupeCertificat={m.occupeCertificat}
           onRetour={() => m.ouvrir(null)}
           onEnregistrer={onEnregistrer}

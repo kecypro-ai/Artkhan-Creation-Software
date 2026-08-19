@@ -770,22 +770,13 @@
   width: 52px;
 }
 
-.lignes__photo img {
-  display: block;
+/* Format « ligne » de la vignette : même composant, autre gabarit. */
+.vignette--ligne {
   width: 40px;
   height: 40px;
-  object-fit: cover;
+  flex: none;
+  aspect-ratio: auto;
   border-radius: 7px;
-}
-
-.lignes__vide {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border: 1px dashed var(--filet);
-  border-radius: 7px;
-  color: var(--texte-tertiaire);
 }
 
 .lignes__titre {
@@ -1080,16 +1071,7 @@
   border-color: var(--filet);
 }
 
-.oeuvres__liste img {
-  width: 44px;
-  height: 44px;
-  object-fit: cover;
-  border-radius: 8px;
-  flex: none;
-}
-
-.oeuvres__liste .lignes__vide {
-  flex: none;
+.oeuvres__liste .vignette--ligne {
   width: 44px;
   height: 44px;
 }

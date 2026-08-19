@@ -22,7 +22,3 @@ export function dansAtelier(racine: string, relatif: string): string | null {
   return absolu
 }
 
-/** Chemin relatif normalisé en séparateurs « / », pour tenir dans un fichier. */
-export function versRelatif(racine: string, absolu: string): string {
-  return relative(racine, absolu).split(sep).join('/')
-}

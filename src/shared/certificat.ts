@@ -1,3 +1,4 @@
+import { dimensionsTexte } from './libelles'
 import { urlMedia } from './medias'
 import { refComplete } from './reference'
 import type { Atelier, Tableau } from './types'
@@ -39,7 +40,7 @@ const MOIS = [
 ]
 
 /** « 2024-04-12 » → « 12 avril 2024 », comme sur le modèle d'origine. */
-export function dateEnToutesLettres(iso: string): string {
+function dateEnToutesLettres(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim())
   if (m === null) return iso.trim()
   const jour = Number(m[3])
@@ -47,13 +48,12 @@ export function dateEnToutesLettres(iso: string): string {
   return `${jour} ${mois} ${m[1]}`
 }
 
-export function dimensionsTexte(t: Tableau): string {
-  if (t.hauteur === null || t.largeur === null) return ''
-  return `${t.hauteur} x ${t.largeur} cms`
+function mesures(t: Tableau): string {
+  return dimensionsTexte(t, { absent: '', unite: 'cms' })
 }
 
 /** « Paris, 2024 » — chaque moitié est facultative. */
-export function lieuEtAnnee(t: Tableau): string {
+function lieuEtAnnee(t: Tableau): string {
   const annee = t.annee === null ? '' : String(t.annee)
   return [t.lieuRealisation.trim(), annee].filter((x) => x !== '').join(', ')
 }
@@ -69,8 +69,8 @@ function ligne(intitule: string, valeur: string): string {
   return propre === '' ? '' : `<p><strong>${echapper(intitule)}</strong> : ${echapper(propre)}</p>`
 }
 
-export function htmlCertificat(t: Tableau, atelier: Atelier, photoChoisie?: string): string {
-  const photo = photoChoisie ?? t.photos[0]
+export function htmlCertificat(t: Tableau, atelier: Atelier): string {
+  const photo = t.photos[0]
   const titre = t.titre.trim() === '' ? 'Sans titre' : t.titre.trim()
   const limitee = t.edition === 'limitee'
   const coche = (actif: boolean): string => (actif ? '■' : '☐')
@@ -173,7 +173,7 @@ export function htmlCertificat(t: Tableau, atelier: Atelier, photoChoisie?: stri
         ${ligne('Nom de l’artiste', atelier.artiste)}
         ${ligne('Technique et matériaux', t.technique)}
         ${ligne('Support', t.support)}
-        ${ligne('Dimensions', dimensionsTexte(t))}
+        ${ligne('Dimensions', mesures(t))}
         ${ligne('Année et lieu de réalisation', lieuEtAnnee(t))}
         ${ligne('Référence', refComplete(t))}
 

@@ -1,18 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ImageOff } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import type { Fiche, TypeCarnet } from '@shared/carnet'
 import { ficheVide, formaterMontant, LIBELLE_CARNET, memeNom, nomsCites, oeuvresDe, totaux } from '@shared/carnet'
-import { urlVignette } from '@shared/medias'
+import { resumeOeuvre, sansTitre, titreTexte } from '@shared/libelles'
 import type { Tableau } from '@shared/types'
-
-const DELAI_ENREGISTREMENT = 600
-
-function ligneOeuvre(t: Tableau): string {
-  const bouts: string[] = []
-  if (t.annee !== null) bouts.push(String(t.annee))
-  if (t.hauteur !== null && t.largeur !== null) bouts.push(`${t.hauteur} × ${t.largeur} cm`)
-  return bouts.join(' · ')
-}
+import { Vignette } from '../composants/Vignette'
+import { useBrouillon } from '../etat/useBrouillon'
 
 interface Props {
   type: TypeCarnet
@@ -127,33 +120,14 @@ function FicheCarnet({
   onEnregistrer,
   onOuvrirTableau
 }: PropsFiche): React.JSX.Element {
-  const [brouillon, setBrouillon] = useState<Fiche>(fiche)
-  const [sale, setSale] = useState(false)
-  const nomAffiche = useRef(fiche.nom)
   const sommes = totaux(oeuvres)
 
-  useEffect(() => {
-    if (nomAffiche.current !== fiche.nom) {
-      nomAffiche.current = fiche.nom
-      setBrouillon(fiche)
-      setSale(false)
-    }
-  }, [fiche])
-
   // Même enregistrement continu que pour les œuvres : rien à valider.
-  useEffect(() => {
-    if (!sale) return
-    const minuteur = setTimeout(() => {
-      onEnregistrer(type, brouillon)
-      setSale(false)
-    }, DELAI_ENREGISTREMENT)
-    return () => clearTimeout(minuteur)
-  }, [sale, brouillon, type, onEnregistrer])
-
-  function modifier(champs: Partial<Fiche>): void {
-    setBrouillon((b) => ({ ...b, ...champs }))
-    setSale(true)
-  }
+  const {
+    valeur: brouillon,
+    sale,
+    modifier
+  } = useBrouillon(fiche, fiche.nom, (v) => onEnregistrer(type, v))
 
   return (
     <div className="fiche">
@@ -238,24 +212,14 @@ function FicheCarnet({
             <p className="colonne__vide">Aucune œuvre rattachée</p>
           ) : (
             <ul className="oeuvres__liste">
-              {oeuvres.map((t) => {
-                const photo = t.photos[0]
-                return (
+              {oeuvres.map((t) => (
                   <li key={t.ref}>
                     <button onClick={() => onOuvrirTableau(t.ref)}>
-                      {photo === undefined ? (
-                        <span className="lignes__vide">
-                          <ImageOff size={14} strokeWidth={1.5} aria-hidden />
-                        </span>
-                      ) : (
-                        <img src={urlVignette(photo)} alt="" loading="lazy" />
-                      )}
+                      <Vignette photo={t.photos[0]} alt="" taille="ligne" />
 
                       <span className="oeuvres__nom">
-                        <span className={t.titre.trim() === '' ? 'lignes__titre--absent' : ''}>
-                          {t.titre.trim() === '' ? 'Sans titre' : t.titre}
-                        </span>
-                        <span className="oeuvres__meta">{ligneOeuvre(t)}</span>
+                        <span className={sansTitre(t) ? 'lignes__titre--absent' : ''}>{titreTexte(t)}</span>
+                        <span className="oeuvres__meta">{resumeOeuvre(t, { avecPhoto: false })}</span>
                       </span>
 
                       <span className="oeuvres__prix">
@@ -264,8 +228,7 @@ function FicheCarnet({
                       </span>
                     </button>
                   </li>
-                )
-              })}
+              ))}
             </ul>
           )}
         </section>

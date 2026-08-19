@@ -10,8 +10,6 @@ import type { ApiAtelier } from '@shared/types'
  * dans le processus principal, qui vérifie chaque chemin.
  */
 const api: ApiAtelier = {
-  diagSharp: (chemin: string) => ipcRenderer.invoke('diag:sharp', chemin),
-
   atelierEtat: () => ipcRenderer.invoke('atelier:etat'),
   atelierChoisir: () => ipcRenderer.invoke('atelier:choisir'),
   atelierCreer: (nom) => ipcRenderer.invoke('atelier:creer', nom),
@@ -38,11 +36,9 @@ const api: ApiAtelier = {
 
   listerFiches: (type) => ipcRenderer.invoke('carnet:lister', type),
   enregistrerFiche: (type, fiche) => ipcRenderer.invoke('carnet:enregistrer', type, fiche),
-  supprimerFiche: (type, nom) => ipcRenderer.invoke('carnet:supprimer', type, nom),
 
   importerPhotos: (ref) => ipcRenderer.invoke('photos:importer', ref),
   retirerPhoto: (ref, photo) => ipcRenderer.invoke('photos:retirer', ref, photo),
-  revelerTableau: (ref) => ipcRenderer.invoke('tableaux:reveler', ref),
 
   certificatPdf: (ref) => ipcRenderer.invoke('certificat:pdf', ref),
   certificatImprimer: (ref) => ipcRenderer.invoke('certificat:imprimer', ref),

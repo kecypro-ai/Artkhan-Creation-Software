@@ -18,8 +18,7 @@
   "dependencies": {
     "sharp": "0.35.3",
     "write-file-atomic": "8.0.0",
-    "yaml": "2.9.0",
-    "zod": "4.4.3"
+    "yaml": "2.9.0"
   },
   "devDependencies": {
     "@types/node": "26.2.0",

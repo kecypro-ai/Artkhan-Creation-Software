@@ -1,7 +1,8 @@
-import { ExternalLink, ImageOff } from 'lucide-react'
-import { urlVignette } from '@shared/medias'
+import { ExternalLink } from 'lucide-react'
+import { titreTexte } from '@shared/libelles'
 import { refComplete } from '@shared/reference'
 import type { CertificatEmis, Tableau } from '@shared/types'
+import { Vignette } from '../composants/Vignette'
 
 function poids(octets: number): string {
   return `${Math.round(octets / 1024)} Ko`
@@ -59,18 +60,11 @@ export function VueCertificats({
               <tbody>
                 {certificats.map((c) => {
                   const oeuvre = tableaux.find((t) => refComplete(t) === c.ref) ?? null
-                  const photo = oeuvre?.photos[0]
 
                   return (
                     <tr key={c.fichier}>
                       <td className="lignes__photo">
-                        {photo === undefined ? (
-                          <span className="lignes__vide">
-                            <ImageOff size={14} strokeWidth={1.5} aria-hidden />
-                          </span>
-                        ) : (
-                          <img src={urlVignette(photo)} alt="" loading="lazy" />
-                        )}
+                        <Vignette photo={oeuvre?.photos[0]} alt="" taille="ligne" />
                       </td>
 
                       <td className="lignes__titre">
@@ -78,7 +72,7 @@ export function VueCertificats({
                           <span className="lignes__titre--absent">Œuvre retirée du catalogue</span>
                         ) : (
                           <button className="lien" onClick={() => onOuvrirTableau(oeuvre.ref)}>
-                            {oeuvre.titre.trim() === '' ? 'Sans titre' : oeuvre.titre}
+                            {titreTexte(oeuvre)}
                           </button>
                         )}
                       </td>

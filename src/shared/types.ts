@@ -185,18 +185,6 @@ export interface CertificatEmis {
   modifie: string
 }
 
-export type DiagSharp =
-  | {
-      ok: true
-      sharpVersion: string
-      libvipsVersion: string
-      source: { largeur: number; hauteur: number; format: string; octets: number }
-      vignette: { largeur: number; hauteur: number; octets: number }
-      dureeMs: number
-      empaquete: boolean
-    }
-  | { ok: false; erreur: string; empaquete: boolean }
-
 /**
  * Surface exposée au renderer par le preload.
  *
@@ -205,8 +193,6 @@ export type DiagSharp =
  * projets TypeScript restent étanches.
  */
 export interface ApiAtelier {
-  diagSharp: (chemin: string) => Promise<DiagSharp>
-
   atelierEtat: () => Promise<EtatAtelier>
   atelierChoisir: () => Promise<EtatAtelier>
   /** Premier lancement : le nom saisi devient celui de l'artiste. */
@@ -230,12 +216,9 @@ export interface ApiAtelier {
 
   listerFiches: (type: TypeCarnet) => Promise<Fiche[]>
   enregistrerFiche: (type: TypeCarnet, fiche: Fiche) => Promise<Fiche>
-  supprimerFiche: (type: TypeCarnet, nom: string) => Promise<void>
 
   importerPhotos: (ref: string) => Promise<Tableau>
   retirerPhoto: (ref: string, photo: string) => Promise<Tableau>
-  revelerTableau: (ref: string) => Promise<void>
-
   /** Rend le chemin du PDF enregistré. */
   certificatPdf: (ref: string) => Promise<string>
   certificatImprimer: (ref: string) => Promise<void>

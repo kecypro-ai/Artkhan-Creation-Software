@@ -1,9 +1,8 @@
-import { stringify as stringifyYaml } from 'yaml'
-import { decouper } from './document'
+import { assainirNom, assembler, decouper, inconnues, poser, poserInconnues, texte } from './entete'
 import type { Tableau } from './types'
 
 /**
- * Carnet d'adresses : acheteurs et lieux de dépôt.
+ * Carnet d'adresses : acheteurs, lieux de dépôt et séries.
  *
  * Les deux demandent rigoureusement la même chose — une fiche par nom, créée
  * dès qu'un nom apparaît sur une œuvre, et la liste des œuvres rattachées.
@@ -39,23 +38,12 @@ export interface Fiche {
 
 const CLES_CONNUES = new Set(['nom', 'email', 'telephone', 'adresse', 'contact'])
 
-function texte(v: unknown): string {
-  if (typeof v === 'string') return v.trim()
-  if (typeof v === 'number' && Number.isFinite(v)) return String(v)
-  return ''
-}
-
 export function ficheVide(nom: string): Fiche {
   return { nom, email: '', telephone: '', adresse: '', contact: '', notes: '', extra: {}, fichier: '' }
 }
 
 export function lireFiche(brut: string, fichier: string, nomSecours: string): Fiche {
   const { entete, corps } = decouper(brut)
-
-  const extra: Record<string, unknown> = {}
-  for (const [cle, valeur] of Object.entries(entete)) {
-    if (!CLES_CONNUES.has(cle)) extra[cle] = valeur
-  }
 
   return {
     nom: texte(entete['nom']) || nomSecours,
@@ -64,7 +52,7 @@ export function lireFiche(brut: string, fichier: string, nomSecours: string): Fi
     adresse: texte(entete['adresse']),
     contact: texte(entete['contact']),
     notes: corps,
-    extra,
+    extra: inconnues(entete, CLES_CONNUES),
     fichier
   }
 }
@@ -72,15 +60,11 @@ export function lireFiche(brut: string, fichier: string, nomSecours: string): Fi
 export function ecrireFiche(f: Fiche): string {
   const entete: Record<string, unknown> = { nom: f.nom }
   for (const cle of ['email', 'telephone', 'adresse', 'contact'] as const) {
-    if (f[cle] !== '') entete[cle] = f[cle]
+    poser(entete, cle, f[cle])
   }
-  for (const [cle, valeur] of Object.entries(f.extra)) {
-    if (!(cle in entete)) entete[cle] = valeur
-  }
+  poserInconnues(entete, f.extra)
 
-  const yaml = stringifyYaml(entete, { lineWidth: 0 }).trimEnd()
-  const corps = f.notes.trim()
-  return corps === '' ? `---\n${yaml}\n---\n` : `---\n${yaml}\n---\n\n${corps}\n`
+  return assembler(entete, f.notes)
 }
 
 /** Comparaison souple : « galerie nord » et « Galerie Nord  » sont un seul lieu. */
@@ -144,10 +128,5 @@ export function formaterMontant(montant: number, devise: string): string {
 
 /** Nom de fichier lisible dans un explorateur, sans caractère interdit. */
 export function nomFichierFiche(nom: string): string {
-  const propre = nom
-    .replace(/[\\/:*?"<>|#^[\]]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 60)
-  return `${propre === '' ? 'Sans nom' : propre}.md`
+  return `${assainirNom(nom, 'Sans nom')}.md`
 }

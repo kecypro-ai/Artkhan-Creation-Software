@@ -1,8 +1,8 @@
-import { ImageOff } from 'lucide-react'
-import { urlVignette } from '@shared/medias'
+import { anneeTexte, dimensionsTexte, sansTitre, titreTexte } from '@shared/libelles'
 import { refComplete } from '@shared/reference'
 import type { ColonneTri, Preferences, Tableau } from '@shared/types'
 import { LIBELLE_STATUT } from '@shared/types'
+import { Vignette } from './Vignette'
 
 const COLONNES: { cle: ColonneTri | null; nom: string; classe?: string }[] = [
   { cle: null, nom: '' },
@@ -13,15 +13,6 @@ const COLONNES: { cle: ColonneTri | null; nom: string; classe?: string }[] = [
   { cle: null, nom: 'Statut' },
   { cle: null, nom: 'Lieu' }
 ]
-
-function annee(t: Tableau): string {
-  if (t.annee === null) return '—'
-  return t.certitude === 'approximative' ? `vers ${t.annee}` : String(t.annee)
-}
-
-function dimensions(t: Tableau): string {
-  return t.hauteur === null || t.largeur === null ? '—' : `${t.hauteur} × ${t.largeur}`
-}
 
 interface Props {
   tableaux: Tableau[]
@@ -62,28 +53,19 @@ export function TableauLignes({ tableaux, preferences, onTri, onOuvrir }: Props)
 
         <tbody>
           {tableaux.map((t) => {
-            const sansTitre = t.titre.trim() === ''
-            const photo = t.photos[0]
-
             return (
               <tr key={t.ref} onClick={() => onOuvrir(t.ref)} tabIndex={0}>
                 <td className="lignes__photo">
-                  {photo === undefined ? (
-                    <span className="lignes__vide">
-                      <ImageOff size={14} strokeWidth={1.5} aria-hidden />
-                    </span>
-                  ) : (
-                    <img src={urlVignette(photo)} alt="" loading="lazy" />
-                  )}
+                  <Vignette photo={t.photos[0]} alt="" taille="ligne" />
                 </td>
 
-                <td className={sansTitre ? 'lignes__titre lignes__titre--absent' : 'lignes__titre'}>
-                  {sansTitre ? 'Sans titre' : t.titre}
+                <td className={sansTitre(t) ? 'lignes__titre lignes__titre--absent' : 'lignes__titre'}>
+                  {titreTexte(t)}
                 </td>
 
                 <td className="ref">{refComplete(t)}</td>
-                <td className="num">{annee(t)}</td>
-                <td className="num">{dimensions(t)}</td>
+                <td className="num">{anneeTexte(t)}</td>
+                <td className="num">{dimensionsTexte(t, { unite: '' })}</td>
 
                 <td>
                   <span className={`pastille pastille--${t.statut}`}>{LIBELLE_STATUT[t.statut]}</span>

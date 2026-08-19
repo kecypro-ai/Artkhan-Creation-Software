@@ -89,8 +89,6 @@ interface Magasin {
   certificatPdf: (ref: string) => Promise<void>
   certificatImprimer: (ref: string) => Promise<void>
   certificatOuvrir: (fichier: string) => void
-  /** Référence complète → chemin du PDF, pour le bouton « Ouvrir ». */
-  pdfsCrees: Record<string, string>
   certificats: CertificatEmis[]
   occupeCertificat: boolean
   effacerErreur: () => void
@@ -113,7 +111,6 @@ export const useMagasin = create<Magasin>((set, get) => ({
   preferences: PREFERENCES_DEFAUT,
   rubrique: 'tableaux',
   fiches: CARNETS_VIDES,
-  pdfsCrees: {},
   certificats: [],
   occupeCertificat: false,
 
@@ -280,8 +277,9 @@ export const useMagasin = create<Magasin>((set, get) => ({
   certificatPdf: async (ref) => {
     set({ occupeCertificat: true })
     try {
-      const fichier = await window.atelier.certificatPdf(ref)
-      set({ pdfsCrees: { ...get().pdfsCrees, [ref]: fichier } })
+      await window.atelier.certificatPdf(ref)
+      // La liste des certificats est relue du disque : c'est elle qui dira
+      // que le PDF existe, plutôt qu'une seconde mémoire à tenir à jour.
       await get().rafraichir()
     } catch (e) {
       set({ erreur: message(e) })

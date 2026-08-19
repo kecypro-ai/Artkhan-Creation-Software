@@ -24,16 +24,14 @@ import {
   enregistrerTableau,
   listerTableaux,
   majPhotos,
-  revelerTableau,
   supprimerTableau,
   trouverTableau
 } from './atelier/depot'
-import { assurerFiches, enregistrerFiche, listerFiches, supprimerFiche } from './atelier/carnet'
+import { assurerFiches, enregistrerFiche, listerFiches } from './atelier/carnet'
 import { importerPhotos, retirerPhoto } from './atelier/photos'
 import { certificatImprimer, certificatOuvrir, certificatPdf, listerCertificats } from './certificat'
 import { appliquerTheme } from './theme'
 import { appliquerZoom } from './zoom'
-import { diagnostiquerSharp } from './thumbs/diag'
 
 let racine: string | null = null
 let atelier: Atelier | null = null
@@ -121,12 +119,6 @@ export async function restaurerAtelier(): Promise<void> {
 export function brancherIpc(): void {
   const fenetre = (): BrowserWindow | null => BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0] ?? null
 
-  ipcMain.handle('diag:sharp', (_e, chemin: unknown) =>
-    typeof chemin === 'string'
-      ? diagnostiquerSharp(chemin, process.env['NODE_ENV'] !== 'development')
-      : Promise.resolve({ ok: false as const, erreur: 'Chemin invalide', empaquete: true })
-  )
-
   ipcMain.handle('atelier:etat', (): EtatAtelier => etat())
 
   ipcMain.handle('atelier:choisir', (): Promise<EtatAtelier> =>
@@ -190,10 +182,6 @@ export function brancherIpc(): void {
     enregistrerFiche(exigerRacine(), type as TypeCarnet, fiche as Fiche)
   )
 
-  ipcMain.handle('carnet:supprimer', (_e, type: unknown, nom: unknown): Promise<void> =>
-    supprimerFiche(exigerRacine(), type as TypeCarnet, texte(nom))
-  )
-
   ipcMain.handle('tableaux:lister', (): Promise<Catalogue> => listerTableaux(exigerRacine()))
 
   ipcMain.handle('tableaux:creer', async (_e, brouillon: unknown): Promise<Tableau> => {
@@ -212,10 +200,6 @@ export function brancherIpc(): void {
 
   ipcMain.handle('tableaux:supprimer', (_e, ref: unknown): Promise<void> =>
     supprimerTableau(exigerRacine(), texte(ref))
-  )
-
-  ipcMain.handle('tableaux:reveler', (_e, ref: unknown): Promise<void> =>
-    revelerTableau(exigerRacine(), texte(ref))
   )
 
   /** Le certificat exige l'œuvre et l'atelier : un seul point de récupération. */

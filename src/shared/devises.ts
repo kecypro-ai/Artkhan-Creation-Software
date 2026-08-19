@@ -24,10 +24,6 @@ export const DEVISES: Devise[] = [
   { code: 'CNY', libelle: 'Yuan' }
 ]
 
-export function libelleDevise(code: string): string {
-  return DEVISES.find((d) => d.code === code)?.libelle ?? code
-}
-
 /** Un code monétaire tient en trois lettres majuscules. */
 export function normaliserDevise(saisie: string): string {
   return saisie

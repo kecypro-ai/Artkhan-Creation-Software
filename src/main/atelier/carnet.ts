@@ -1,75 +1,33 @@
-import { mkdir, readdir, readFile } from 'node:fs/promises'
-import { join } from 'node:path'
-import { shell } from 'electron'
-import writeFileAtomic from 'write-file-atomic'
 import type { Fiche, TypeCarnet } from '@shared/carnet'
 import { DOSSIER_CARNET, ecrireFiche, ficheVide, lireFiche, memeNom, nomFichierFiche } from '@shared/carnet'
-import { dansAtelier } from './chemins'
+import { corbeille, lireTout, poser, type Collection } from './collection'
 
 /**
- * Lecture et écriture des carnets, sur le même modèle que les tableaux.
+ * Les carnets — acheteurs, lieux de dépôt et séries — sur le même dossier de
+ * documents Markdown que les œuvres.
  *
- * Le type de carnet ne change que le dossier : tout le reste est commun, y
- * compris la tolérance aux fichiers abîmés et le passage par la corbeille.
+ * Le type de carnet ne change que le dossier ; la persistance, elle, est
+ * celle de `collection.ts`.
  */
-
-async function fichiers(racine: string, type: TypeCarnet): Promise<string[]> {
-  try {
-    const entrees = await readdir(join(racine, DOSSIER_CARNET[type]), { withFileTypes: true })
-    return entrees
-      .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.md'))
-      .map((e) => e.name)
-      .sort((a, b) => a.localeCompare(b, 'fr'))
-  } catch {
-    return []
+function collection(type: TypeCarnet): Collection<Fiche> {
+  return {
+    dossier: DOSSIER_CARNET[type],
+    lire: lireFiche,
+    ecrire: ecrireFiche,
+    nommer: (f) => nomFichierFiche(f.nom)
   }
 }
 
 export async function listerFiches(racine: string, type: TypeCarnet): Promise<Fiche[]> {
-  const dossier = DOSSIER_CARNET[type]
-  const fiches: Fiche[] = []
-
-  for (const nom of await fichiers(racine, type)) {
-    try {
-      const brut = await readFile(join(racine, dossier, nom), 'utf8')
-      fiches.push(lireFiche(brut, `${dossier}/${nom}`, nom.replace(/\.md$/i, '')))
-    } catch {
-      // Fiche illisible : le carnet n'est pas le catalogue, on passe. Le nom
-      // reste de toute façon présent sur les œuvres qui le citent.
-    }
-  }
-
-  return fiches.sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
-}
-
-async function poser(racine: string, type: TypeCarnet, fiche: Fiche): Promise<Fiche> {
-  const relatif = `${DOSSIER_CARNET[type]}/${nomFichierFiche(fiche.nom)}`
-  const absolu = dansAtelier(racine, relatif)
-  if (absolu === null) throw new Error(`Chemin refusé : ${relatif}`)
-
-  await mkdir(join(racine, DOSSIER_CARNET[type]), { recursive: true })
-  const complete: Fiche = { ...fiche, fichier: relatif }
-  await writeFileAtomic(absolu, ecrireFiche(complete), 'utf8')
-  return complete
+  // Les échecs sont ignorés : un carnet n'est pas le catalogue, et le nom
+  // reste de toute façon présent sur les œuvres qui le citent.
+  const { valeurs } = await lireTout(racine, collection(type))
+  return valeurs.sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
 }
 
 export async function enregistrerFiche(racine: string, type: TypeCarnet, fiche: Fiche): Promise<Fiche> {
-  const pose = await poser(racine, type, fiche)
-
-  // Le nom a changé : le fichier suit, pour que le dossier reste lisible sans
-  // l'application. L'ancien part à la corbeille, jamais au néant.
-  if (fiche.fichier !== '' && fiche.fichier !== pose.fichier) {
-    const ancien = dansAtelier(racine, fiche.fichier)
-    if (ancien !== null) {
-      try {
-        await shell.trashItem(ancien)
-      } catch {
-        /* Fichier déjà déplacé : la fiche à jour existe, c'est l'essentiel. */
-      }
-    }
-  }
-
-  return pose
+  const fichier = await poser(racine, collection(type), fiche, fiche.fichier)
+  return { ...fiche, fichier }
 }
 
 /**
@@ -89,13 +47,11 @@ export async function assurerFiches(racine: string, type: TypeCarnet, noms: stri
   for (const nom of aCreer) {
     if (vus.some((autre) => memeNom(autre, nom))) continue
     vus.push(nom)
-    await poser(racine, type, ficheVide(nom))
+    await poser(racine, collection(type), ficheVide(nom), null)
   }
 }
 
 export async function supprimerFiche(racine: string, type: TypeCarnet, nom: string): Promise<void> {
   const existante = (await listerFiches(racine, type)).find((f) => memeNom(f.nom, nom))
-  if (existante === undefined) return
-  const absolu = dansAtelier(racine, existante.fichier)
-  if (absolu !== null) await shell.trashItem(absolu)
+  if (existante !== undefined) await corbeille(racine, existante.fichier)
 }

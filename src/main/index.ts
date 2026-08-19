@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
 import { brancherIpc, racineCourante, restaurerAtelier } from './ipc'
 import { brancherProtocoles, declarerProtocoles } from './protocole'
-import { diagnostiquerSharp } from './thumbs/diag'
 import { couleursBarre, fondFenetre, restaurerTheme, suivreTheme } from './theme'
 import { verifierAtelier } from './verification'
 import { brancherRaccourcisZoom, restaurerZoom } from './zoom'
@@ -13,7 +12,6 @@ function argument(nom: string): string | undefined {
   return i === -1 ? undefined : process.argv[i + 1]
 }
 
-const cheminDiag = argument('--diag')
 const cheminVerif = argument('--verifier')
 
 /**
@@ -26,7 +24,7 @@ const cheminVerif = argument('--verifier')
  */
 app.setPath(
   'userData',
-  cheminDiag !== undefined || cheminVerif !== undefined
+  cheminVerif !== undefined
     ? join(app.getPath('temp'), 'Artkhan-controle')
     : join(app.getPath('appData'), '..', 'Local', 'Artkhan')
 )
@@ -83,26 +81,18 @@ async function rendreCompte(resultat: { ok: boolean }): Promise<void> {
   app.exit(resultat.ok ? 0 : 1)
 }
 
-if (cheminVerif !== undefined || cheminDiag !== undefined) {
-  /*
-   * Le contrôle fabrique un certificat, donc ouvre puis referme une fenêtre
-   * invisible. Sans ce gardien, Electron quitterait de lui-même en la voyant
-   * disparaître — avant que le compte rendu ne soit écrit, et en rendant 0
-   * comme si tout s'était bien passé.
-   */
-  app.on('window-all-closed', () => {})
-}
-
 if (cheminVerif !== undefined) {
   /**
    * Contrôle de bout en bout sur un atelier réel, à lancer sur l'application
    * empaquetée : lecture des fiches, résolution des chemins, fabrication d'une
    * vignette par sharp et d'un certificat en PDF, le tout depuis l'archive.
+   *
+   * Le contrôle ouvre puis referme la fenêtre invisible du certificat. Sans ce
+   * gardien, Electron quitterait de lui-même en la voyant disparaître — avant
+   * l'écriture du compte rendu, et en rendant 0 comme si tout allait bien.
    */
+  app.on('window-all-closed', () => {})
   void app.whenReady().then(async () => rendreCompte(await verifierAtelier(cheminVerif, app.isPackaged)))
-} else if (cheminDiag !== undefined) {
-  // Mesure brute de sharp sur une image donnée : `--diag <image>`.
-  void app.whenReady().then(async () => rendreCompte(await diagnostiquerSharp(cheminDiag, app.isPackaged)))
 } else if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
